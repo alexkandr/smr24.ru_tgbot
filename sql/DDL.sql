@@ -1,10 +1,11 @@
-
-CREATE Table IF NOT EXISTS carts(
-    user_id INTEGER,
-    item_id VARCHAR(255) REFERENCES items(id), 
-    amount INTEGER
-);
-ALTER TABLE carts ADD CONSTRAINT CartItemsUnique UNIQUE(user_id, item_id);
+REATE DATABASE "ArtComplect"
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False 
+    LC_COLLATE='ru_RU.utf8' 
+    LC_CTYPE='ru_RU.utf8';
 
 CREATE TABLE IF NOT EXISTS images(
     id  SERIAL PRIMARY KEY,
@@ -36,3 +37,9 @@ CREATE TABLE IF NOT EXISTS items(
     currency VARCHAR(3),
     avaible INTEGER
 );
+CREATE Table IF NOT EXISTS carts(
+    user_id INTEGER,
+    item_id VARCHAR(255) REFERENCES items(id), 
+    amount INTEGER
+);
+ALTER TABLE carts ADD CONSTRAINT CartItemsUnique UNIQUE(user_id, item_id);
