@@ -1,0 +1,5 @@
+start_command = 'Притветствую тебя, Lorem ipsum dolor sit amet'
+contactus_command = 'Свяжись с нами, Lorem ipsum dolor sit amet'
+contactus_text = 'текст на кнопочке для связи'
+contactus_url = 'example.example'
+search_text = '<i>Поиск по названию</i>\n Напишите, что вы ищете, Lorem ipsum dolor sit amet'
