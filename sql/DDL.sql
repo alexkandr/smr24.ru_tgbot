@@ -1,4 +1,4 @@
-REATE DATABASE "ArtComplect"
+CREATE DATABASE "ArtComplect"
     WITH
     OWNER = postgres
     ENCODING = 'UTF8'
