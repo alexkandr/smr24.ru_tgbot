@@ -1,7 +1,8 @@
 from os import getenv
 import asyncio
-from dotenv import load_dotenv
+import logging
 
+from dotenv import load_dotenv
 from aiogram import Dispatcher, Bot
 from aiogram.fsm.strategy import FSMStrategy
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -11,10 +12,17 @@ from models.db import images_tab
 
 load_dotenv()
 TOKEN =  getenv('BOT_TOKEN')
+logging.basicConfig(level=logging.INFO, filename="./logs/py_log.log",filemode="w")
+
 
 async def main():
-    bot = Bot(token=TOKEN, parse_mode='HTML')
-    dp = Dispatcher(fsm_strategy=FSMStrategy.USER_IN_CHAT, storage=MemoryStorage()) 
+    logging.info('Starting Bot')
+    try:
+        bot = Bot(token=TOKEN, parse_mode='HTML')
+        dp = Dispatcher(fsm_strategy=FSMStrategy.USER_IN_CHAT, storage=MemoryStorage()) 
+    except:
+        logging.error('couldnt connect to telegram api')
+    logging.info('Bot started')
     #await images_tab.upload_(bot)
     dp.include_router(menu.router)
     dp.include_router(catalog.router)

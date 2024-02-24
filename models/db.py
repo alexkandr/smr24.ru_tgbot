@@ -1,5 +1,6 @@
 from os import getenv
 import asyncio
+import logging
 
 from models.dao import ItemDAO, OrderDAO, OrderItemDAO, CartItemDAO, AddressDAO
 
@@ -12,6 +13,23 @@ from aiogram.types import FSInputFile
 load_dotenv()
 DATABASE = getenv('DATABASE')
 ADMIN = getenv('ADMIN_CHAT_ID')
+
+def log_query(query : str) -> None:
+    info = "Query to DATABASE:"
+    for i in query.split('\n'):
+        info += ('\n\t' + i)
+    logging.info(info)    
+
+def log_query_result(result) -> None:
+    res = ''
+    if result is None:
+        res ='None'
+    elif type(result) == list:
+        res = str(len(result))
+    else:
+        res = '1'
+    info = f'Query returned {res} results'
+    logging.info(info)
 
 class ItemsTable:
     async def connect(self):
@@ -29,26 +47,43 @@ class ItemsTable:
         return
     
     async def get_all(self) -> list[ItemDAO]:
+        query = f'select * from items'
+        log_query(query)
         async with self.conn.cursor(row_factory=class_row(ItemDAO)) as cur:
-            await cur.execute(f'select * from items')
-            return await cur.fetchall()
+            await cur.execute(query)
+            result = await cur.fetchall()
+            log_query_result(result)
+            return result
     
     async def get_by_category(self, category : str) -> list[ItemDAO]:
+        query = f"select * from items where group_name = '{category}'"
+        log_query(query)
         async with self.conn.cursor(row_factory=class_row(ItemDAO)) as cur:
-            await cur.execute(f"select * from items where group_name = '{category}'")
-            return await cur.fetchall()
+            await cur.execute(query)
+            result = await cur.fetchall()
+            log_query_result(result)
+            return result
     
     async def get_by_id(self, item_id : int) -> ItemDAO:
+        query = f"select * from items where id = '{item_id}'"
+        log_query(query)
         async with self.conn.cursor(row_factory=class_row(ItemDAO)) as cur:
-            await cur.execute(f"select * from items where id = '{item_id}'")
-            return await cur.fetchone()
+            await cur.execute(query)
+            result = await cur.fetchone()
+            log_query_result(result)
+            return result
     
     async def get_names(self) -> list[dict]:
         return
+    
     async def find(self, query : str) -> list[ItemDAO] | None:
+        query = f"select * from items where to_tsvector(lower(name)) @@ plainto_tsquery(lower('{query}'))"
+        log_query(query)
         async with self.conn.cursor(row_factory=class_row(ItemDAO)) as cur:
-            await cur.execute(f"select * from items where to_tsvector(lower(name)) @@ plainto_tsquery(lower('{query}'))")
-            return await cur.fetchall()
+            await cur.execute(query)
+            result = await cur.fetchall()
+            log_query_result(result)
+            return result
 
 
 class AddressesTable:
@@ -56,26 +91,40 @@ class AddressesTable:
         self.conn = await psycopg.AsyncConnection.connect(DATABASE, autocommit=True)
 
     async def get_by_user_id(self, user_id : int) -> list[class_row]:
+        query = f'select * from addresses where user_id = {user_id}'
+        log_query(query)
         async with self.conn.cursor(row_factory=class_row(AddressDAO)) as cur:
-            await cur.execute(f'select * from addresses where user_id = {user_id}')
-            return await cur.fetchall()
+            await cur.execute(query)
+            result = await cur.fetchall()
+            log_query_result(result)
+            return result
 
     async def get_by_id(self, id : int) -> class_row:
+        query = f'select * from addresses where id = {id}'
+        log_query(query)
         async with self.conn.cursor(row_factory=class_row(AddressDAO)) as cur:
-            await cur.execute(f'select * from addresses where id = {id}')
-            return await cur.fetchone()
+            await cur.execute(query)
+            result = await cur.fetchone()
+            log_query_result(result)
+            return result
 
     async def delete_by_user_id(self, user_id : int):
+        query = f'delete from addresses where user_id = {user_id}'
+        log_query(query)
         async with self.conn.cursor(row_factory=class_row(AddressDAO)) as cur:
-            await cur.execute(f'delete from addresses where user_id = {user_id}')
+            await cur.execute(query)
 
     async def delete_by_id(self, id : int):
+        query = f'delete from addresses where id = {id}'
+        log_query(query)
         async with self.conn.cursor(row_factory=class_row(AddressDAO)) as cur:
-            await cur.execute(f'delete from addresses where id = {id}')
+            await cur.execute(query)
 
-    async def add(self,user_id :int = 0,index : str = '',country : str = '',city : str = '',street : str = '',house : str = '',building : str = '',office : str = ''):
+async def add(self,user_id :int = 0,index : str = '',country : str = '',city : str = '',street : str = '',house : str = '',building : str = '',office : str = ''):
+        query = f"insert into addresses (user_id, index, country, city, street, house, building, office) values({user_id}, '{index}', '{country}', '{city}', '{street}', '{house}', '{building}', '{office}')" 
+        log_query(query)
         async with self.conn.cursor(row_factory=class_row(AddressDAO)) as cur:
-            await cur.execute(f"insert into addresses (user_id, index, country, city, street, house, building, office) values({user_id}, '{index}', '{country}', '{city}', '{street}', '{house}', '{building}', '{office}')")        
+            await cur.execute(query)
             
 class OrdersTable:
     async def connect(self):
@@ -93,26 +142,40 @@ class ImagesTable:
         self.conn = await psycopg.AsyncConnection.connect(DATABASE, autocommit=True)
 
     async def add(self, file_id : str, file_name : str) -> None:
+        query = f"insert into images (file_id, file_name) values ('{file_id}', '{file_name}')"
+        log_query(query)
         async with self.conn.cursor() as cur:
-            await cur.execute(f"insert into images (file_id, file_name) values ('{file_id}', '{file_name}')")
+            await cur.execute(query)
     
     async def get_all(self) -> list[dict]:
+        query = f"select (file_name, file_id) from images"
+        log_query(query)
         async with self.conn.cursor(row_factory=dict_row) as cur:
-            await cur.execute(f"select (file_name, file_id) from images")
-            return await cur.fetchall()
+            await cur.execute(query)
+            result = await cur.fetchall()
+            log_query_result(result)
+            return result
 
     async def delete(self, id : int) -> None:
+        query = f"delete from sklad where id = {id}"
+        log_query(query)
         async with self.conn.cursor() as cur:
-            await cur.execute(f"delete from sklad where id = {id}")
+            await cur.execute(query)
     
     async def get_by_name(self, file_name : str) -> str:
+        query = f"select file_id from images where file_name = '{file_name}' "
+        log_query(query)
         async with self.conn.cursor() as cur:
-            await cur.execute(f"select file_id from images where file_name = '{file_name}' ")
-            return (await cur.fetchone())[0]
+            await cur.execute(query)
+            result = (await cur.fetchone())[0]
+            log_query_result(result)
+            return result
         
     async def upload_(self, bot):
+        query = f'select image from items'
+        log_query(query)
         async with self.conn.cursor() as cur:
-            await cur.execute(f'select image from items')
+            await cur.execute(query)
             images = await cur.fetchall()
             for im in images:
                 name = im[0]
@@ -142,42 +205,77 @@ class CartsTable:
     async def connect(self):
         self.conn = await psycopg.AsyncConnection.connect(DATABASE, autocommit=True)
 
-    async def add_to_cart(self, user_id : int | str, item_id : int | str, amount : int) -> list[CartItemDAO]:
+    async def add_to_cart(self, user_id : int | str, item_id : str, amount : int) -> list[CartItemDAO]:
         async with self.conn.cursor(row_factory=class_row(CartItemDAO)) as cur:
-            current_amnt = await (await cur.execute("select amount from carts where user_id = %s and item_id = '%s'"%(user_id, item_id))).fetchone()
+            que1 = "select amount from carts where user_id = %s and item_id = '%s'"%(user_id, item_id)
+            await cur.execute(que1)
+            current_amnt = await cur.fetchone()
+            log_query_result(current_amnt)
             if current_amnt:
-                await cur.execute("update carts set amount = %s where user_id = %s and item_id = '%s'"%(amount + current_amnt, user_id, item_id))
+                que2 = "update carts set amount = %s where user_id = %s and item_id = '%s'"%(amount + current_amnt, user_id, item_id)
+                log_query(que2)
+                await cur.execute(que2)
             else:
-                await cur.execute("insert into carts(user_id, item_id, amount) values(%s, '%s', %s)"%(user_id, item_id, amount))
-            return await (await cur.execute('select * from carts where user_id = %s '%user_id)).fetchall()
+                que3= "insert into carts(user_id, item_id, amount) values(%s, '%s', %s)"%(user_id, item_id, amount)
+                log_query(que3)
+                await cur.execute(que3)
+            
+            que4 = 'select * from carts where user_id = %s '%user_id
+            log_query(que4)
+            await cur.execute(que4)
+            result = await cur.fetchall()
+            return result
 
     async def set_amount(self, user_id : int | str, item_id : int | str, amount : int) -> list[CartItemDAO]:
         async with self.conn.cursor(row_factory=class_row(CartItemDAO)) as cur:
             if amount <= 0:
-                await cur.execute("delete from cart where user_id = %s and item_id = '%s'"%(user_id, item_id))
+                query = "delete from carts where user_id = %s and item_id = '%s'"%(user_id, item_id)
+                log_query(query)
+                await cur.execute(query)
             else:
-                await cur.execute("update carts set amount = %s where user_id = %s and item_id = '%s'"%(amount, user_id, item_id))
-            return await (await cur.execute('select * from carts where user_id = %s '%user_id)).fetchall()
+                query = "update carts set amount = %s where user_id = %s and item_id = '%s'"%(amount, user_id, item_id)
+                log_query(query)
+                await cur.execute(query)
+            query = 'select * from carts where user_id = %s '%user_id
+            log_query(query)
+            await cur.execute(query)
+            result = await cur.fetchall()
+            log_query_result(result)
+            return result
             
 
     async def get_cart(self, user_id : int | str) -> list[CartItemDAO]:
+        query = f"select * from carts where user_id = {user_id}"
+        log_query(f"select * from carts where user_id = {user_id}")
         async with self.conn.cursor(row_factory=class_row(CartItemDAO)) as cur:
-            await cur.execute(f"select * from carts where user_id = {user_id}")
-            return await cur.fetchall()
+            await cur.execute(query)
+            result = await cur.fetchall()
+            log_query_result(result)
+            return result
     
     async def get_amount(self, user_id, item_id) -> int:
+        query = "select amount from carts where user_id = %s and items_id = %s"%(user_id, item_id)
+        log_query("select amount from carts where user_id = %s and items_id = %s"%(user_id, item_id))
         async with self.conn.cursor() as cur:
-            await cur.execute("select amount from carts where user_id = %s and items_id = %s"%(user_id, item_id))
-            return (await cur.fetchone())[0]
+            await cur.execute(query)
+            result = (await cur.fetchone())[0]
+            log_query_result(result)
+            return result
 
     async def remove_item(self, user_id : int | str, item_id : int | str) -> list[CartItemDAO]:
+        query = "delete from carts where user_id = %s and item_id = '%s'"%(user_id, item_id)
+        log_query("delete from carts where user_id = %s and item_id = '%s'"%(user_id, item_id))
         async with self.conn.cursor() as cur:
-            await cur.execute("delete from carts where user_id = %s and item_id = '%s'"%(user_id, item_id))
-            return await (await cur.execute('select * from carts where user_id = %s '%user_id)).fetchall()
+            await cur.execute(query)
+            result = await (await cur.execute('select * from carts where user_id = %s '%user_id)).fetchall()
+            log_query_result(result)
+            return result
 
     async def clear_cart(self, user_id : int | str) -> None:
+        query = "delete from carts where user_id = %s"%(user_id)
+        log_query("delete from carts where user_id = %s"%(user_id))
         async with self.conn.cursor() as cur:
-            await cur.execute("delete from carts where user_id = %s"%(user_id))
+            await cur.execute(query)
 
         
 class DataBase:

@@ -14,7 +14,6 @@ router = Router()
 @router.message(F.text=='Каталог')
 @router.message(Command(commands=['catalog']))
 async def catalog_que(message : Message):
-    
     await message.answer_photo(photo=await images_tab.get_by_name('Catalog'),
         reply_markup=CatalogKeyboards.list_categories(await items_tab.get_categories(page = 1), page=1) )
 

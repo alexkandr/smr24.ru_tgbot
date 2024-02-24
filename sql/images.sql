@@ -3,7 +3,7 @@ insert into images (file_name, file_id) values ('Catalog.png', 'AgACAgIAAxkBAAM5
 insert into images (file_name, file_id) values ('Empty_cart.png', 'AgACAgIAAxkBAAM-ZXmrJ0dtiDJdoTSg3gbitwTXtiYAAoHXMRslz9FLA_U9NhKFrfwBAAMCAAN4AAMzBA'); 
 insert into images (file_name, file_id) values ('Search.png', 'AgACAgIAAxkBAANCZXmrO28XOQyZL5eF7xAhPcB30KMAAnXXMRslz9FLk7F84Gq8vdgBAAMCAAN4AAMzBA'); 
 insert into images (file_name, file_id) values ('Cart.png', 'AgACAgIAAxkBAANGZXmrSe9PFk9dbP6M3vKieSfsoOEAAoLXMRslz9FLfTmNvMhtlmkBAAMCAAN4AAMzBA'); 
-insert into images (file_name, file_id) values ('Cart.png', 'AgACAgIAAxkBAANNZXmrqaaep9vGxQH1WuFdJEr2tW8AAoLXMRslz9FLfTmNvMhtlmkBAAMCAAN4AAMzBA'); 
+insert into images (file_name, file_id) values ('Cart', 'AgACAgIAAxkBAANNZXmrqaaep9vGxQH1WuFdJEr2tW8AAoLXMRslz9FLfTmNvMhtlmkBAAMCAAN4AAMzBA'); 
 insert into images (file_name, file_id) values ('Empty_cart', 'AgACAgIAAxkBAANSZXmr0dO1zPEFMQJhpscjewOxlHYAAoHXMRslz9FLA_U9NhKFrfwBAAMCAAN4AAMzBA'); 
 insert into images (file_name, file_id) values ('Catalog', 'AgACAgIAAxkBAANZZXmr7I9MPXJqHSFb2s79KuB-ReQAAnTXMRslz9FLCKUKZA91DL8BAAMCAAN4AAMzBA'); 
 insert into images (file_name, file_id) values ('search', 'AgACAgIAAxkBAANhZXmsvoRklM_tZiHf-95vP6o1G3EAAnXXMRslz9FLk7F84Gq8vdgBAAMCAAN4AAMzBA'); 
