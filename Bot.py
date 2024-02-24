@@ -13,9 +13,9 @@ from models.db import images_tab
 
 load_dotenv()
 TOKEN =  getenv('BOT_TOKEN')
-rel_path = pathlib.Path(__file__).resolve()
+rel_path = pathlib.Path(__file__).parent.resolve()
 
-logging.basicConfig(level=logging.INFO, filename=rel_path.joinpath("/logs/py_log.log"),filemode="w")
+logging.basicConfig(level=logging.INFO, filename=rel_path.joinpath("./logs/py_log.log"),filemode="w")
 
 
 async def main():
