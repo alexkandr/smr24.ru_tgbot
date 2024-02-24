@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS "ArtKomplect"
+CREATE DATABASE "ArtKomplect"
     WITH
     OWNER = postgres
     ENCODING = 'UTF8'

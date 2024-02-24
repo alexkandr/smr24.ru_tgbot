@@ -1,3 +1,4 @@
+\c ArtKomplect;
 insert into images (file_name, file_id) values ('welcome.png', 'AgACAgIAAxkBAAMzZXmoJ8xY8NVBcgE51Joi64ZN8r0AAkXXMRslz9FLmbv0yMILqCUBAAMCAAN4AAMzBA'); 
 insert into images (file_name, file_id) values ('Catalog.png', 'AgACAgIAAxkBAAM5ZXmpncDo0l8tgYJDqwMkaECx0voAAnTXMRslz9FLCKUKZA91DL8BAAMCAAN4AAMzBA'); 
 insert into images (file_name, file_id) values ('Empty_cart.png', 'AgACAgIAAxkBAAM-ZXmrJ0dtiDJdoTSg3gbitwTXtiYAAoHXMRslz9FLA_U9NhKFrfwBAAMCAAN4AAMzBA'); 

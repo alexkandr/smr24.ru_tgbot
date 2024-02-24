@@ -120,7 +120,7 @@ class AddressesTable:
         async with self.conn.cursor(row_factory=class_row(AddressDAO)) as cur:
             await cur.execute(query)
 
-async def add(self,user_id :int = 0,index : str = '',country : str = '',city : str = '',street : str = '',house : str = '',building : str = '',office : str = ''):
+    async def add(self,user_id :int = 0,index : str = '',country : str = '',city : str = '',street : str = '',house : str = '',building : str = '',office : str = ''):
         query = f"insert into addresses (user_id, index, country, city, street, house, building, office) values({user_id}, '{index}', '{country}', '{city}', '{street}', '{house}', '{building}', '{office}')" 
         log_query(query)
         async with self.conn.cursor(row_factory=class_row(AddressDAO)) as cur:
