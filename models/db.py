@@ -23,12 +23,12 @@ def log_query(query : str) -> None:
 def log_query_result(result) -> None:
     res = ''
     if result is None:
-        res ='None'
+        res ='None results'
     elif type(result) == list:
-        res = str(len(result))
+        res = str(len(result)) + 'results'
     else:
-        res = '1'
-    info = f'Query returned {res} results'
+        res = f'1 {type(result)} result: \n {result}'
+    info = f'Query returned {res}'
     logging.info(info)
 
 class ItemsTable:
