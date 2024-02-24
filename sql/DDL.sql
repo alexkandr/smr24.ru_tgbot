@@ -1,4 +1,4 @@
-CREATE DATABASE "ArtComplect"
+CREATE DATABASE IF NOT EXISTS "ArtComplect"
     WITH
     OWNER = postgres
     ENCODING = 'UTF8'
@@ -6,6 +6,8 @@ CREATE DATABASE "ArtComplect"
     IS_TEMPLATE = False 
     LC_COLLATE='ru_RU.utf8' 
     LC_CTYPE='ru_RU.utf8';
+
+\c ArtComplect;
 
 CREATE TABLE IF NOT EXISTS images(
     id  SERIAL PRIMARY KEY,
