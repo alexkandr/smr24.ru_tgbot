@@ -1,6 +1,7 @@
 from os import getenv
 import asyncio
 import logging
+import pathlib
 
 from dotenv import load_dotenv
 from aiogram import Dispatcher, Bot
@@ -12,7 +13,8 @@ from models.db import images_tab
 
 load_dotenv()
 TOKEN =  getenv('BOT_TOKEN')
-logging.basicConfig(level=logging.INFO, filename="./logs/py_log.log",filemode="w")
+
+logging.basicConfig(level=logging.INFO, filename=pathlib.Path("/logs/py_log.log").resolve(),filemode="w")
 
 
 async def main():
