@@ -15,34 +15,47 @@ router = Router()
 @router.message(Command(commands=['catalog']))
 async def catalog_que(message : Message):
     await message.answer_photo(photo=await images_tab.get_by_name('Catalog'),
-        reply_markup=CatalogKeyboards.list_categories(await items_tab.get_categories(page = 1), page=1) )
+        reply_markup=CatalogKeyboards.list_categories(await items_tab.get_categories(page = 1), category_dict= items_tab.groups_dict,page=1) )
 
 @router.callback_query(CategoryCallbackFactory.filter())
 async def show_catalog(call : CallbackQuery, callback_data : CategoryCallbackFactory):
+    if callback_data.manufacturer is not None:
+        showing_data = await items_tab.get_by_cat_man(items_tab.groups_dict[int(callback_data.c)], callback_data.manufacturer)
+        #Check for empty
+        if showing_data == []:
+            await call.message.answer(text='Здесь пока ничего нет')
+            await call.answer()
+            return
+        #Show items
+        for item in showing_data:
+            await call.message.answer_photo(photo= item.image, caption=(item.message_info()),
+            reply_markup= CatalogKeyboards.show_item(0, item.id))
+
+        await call.answer()
+    
     if callback_data.c.startswith('+'):
         nextpage = int(callback_data.c[1:]) + 1
-        await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories (await items_tab.get_categories(page = nextpage), page=nextpage))
+        await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories (await items_tab.get_categories(page = nextpage),category_dict= items_tab.groups_dict, page=nextpage))
         await call.answer()
         return
     if callback_data.c.startswith('-'):
         nextpage = int(callback_data.c[1:]) - 1
-        await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories (await items_tab.get_categories(page = nextpage), page=nextpage))
+        await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories (await items_tab.get_categories(page = nextpage),category_dict= items_tab.groups_dict, page=nextpage))
         await call.answer()
         return
     
-    showing_data = await items_tab.get_by_category(callback_data.c)
-    #Check for empty
-    if showing_data == []:
-        await call.message.answer(text='Здесь пока ничего нет')
+    if callback_data.c.startswith('back'):
+        await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories(await items_tab.get_categories(page = 1), category_dict= items_tab.groups_dict,page=1))
         await call.answer()
         return
-
-    #Show items
-    for item in showing_data:
-        await call.message.answer_photo(photo= item.image, caption=(item.message_info()),
-        reply_markup= CatalogKeyboards.show_item(0, item.id))
-
+        
+    manufacturers = await items_tab.get_manufacturers_by_category(items_tab.groups_dict[int(callback_data.c)])
+    await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_manufacturers(manufacturers=manufacturers, category=callback_data.c))
     await call.answer()
+    
+    
+
+    
 
 async def update_item_markup(message: Message, new_amount : int, item_id : int):
     new_amount = new_amount if new_amount > 0 else 0

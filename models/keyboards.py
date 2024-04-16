@@ -95,23 +95,34 @@ class MenuKeyboards:
 class CatalogKeyboards:
 
     @staticmethod
-    def list_categories(categories: list[str], 
-                        page : int) -> InlineKeyboardMarkup:
+    def list_categories(category_ids: list[str], page : int, category_dict : dict) -> InlineKeyboardMarkup:
+        
         buttons = []
-        for cat in categories:
-            buttons.append([
-                InlineKeyboardButton(text=cat, callback_data=
-                                    CategoryCallbackFactory(c=cat,a='').pack())
-            ])
+        
+        for cat in category_ids:
+            buttons.append([InlineKeyboardButton(text=category_dict[cat], callback_data=CategoryCallbackFactory(c=str(cat), manufacturer='').pack())])
         buttons.append([
-            InlineKeyboardButton(text="<", callback_data=
-                                 CategoryCallbackFactory(c='-' + str(page))
-                                 .pack()),
-            InlineKeyboardButton(text=str(page), callback_data=
-                                 CategoryCallbackFactory(c='curr').pack()),
-            InlineKeyboardButton(text=">", callback_data=
-                                 CategoryCallbackFactory(c='+' + str(page)).pack())
-        ])
+                InlineKeyboardButton(text="<", callback_data=CategoryCallbackFactory(c='-' + str(page), manufacturer = '').pack()),
+                InlineKeyboardButton(text=str(page), callback_data=CategoryCallbackFactory(c='curr', manufacturer = '').pack()),
+                InlineKeyboardButton(text=">", callback_data=CategoryCallbackFactory(c='+' + str(page), manufacturer = '').pack())
+            ])
+
+
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+    
+    @staticmethod
+    def list_manufacturers(manufacturers: list[str], category : str) -> InlineKeyboardMarkup:
+        
+        buttons = []
+        
+        for man in manufacturers:
+            buttons.append([InlineKeyboardButton(text=man, callback_data=CategoryCallbackFactory(c=category, manufacturer=man).pack()) ])
+        buttons.append([
+                #InlineKeyboardButton(text="Другое", callback_data=CategoryCallbackFactory(c=category, manufacturer='other').pack()),
+                InlineKeyboardButton(text="Назад", callback_data=CategoryCallbackFactory(c='back', manufacturer = '').pack())
+            ])
+
+
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
     @staticmethod 
@@ -119,21 +130,12 @@ class CatalogKeyboards:
         
         builder = InlineKeyboardBuilder()
         
-        builder.button(text="-1", callback_data=
-                       ItemCallbackFactory(action='decr', amount=amount, 
-                                           item_id=item_id))
-        builder.button(text=str(amount), callback_data=
-                       ItemCallbackFactory(action='none', amount=amount, 
-                                           item_id=item_id))
-        builder.button(text="+1", callback_data=
-                       ItemCallbackFactory(action='incr', amount=amount, 
-                                           item_id=item_id))
+        builder.button(text="-1", callback_data=ItemCallbackFactory(action='decr', amount=amount, item_id=item_id))
+        builder.button(text="+1", callback_data=ItemCallbackFactory(action='incr', amount=amount, item_id=item_id))
         
-        builder.button(text='В корзину', callback_data=
-                       ItemCallbackFactory(action='to_cart', amount=amount, 
-                                           item_id=item_id))
+        builder.button(text=f'{amount} штук в корзину', callback_data=ItemCallbackFactory(action='to_cart', amount=amount, item_id=item_id))
         
-        builder.adjust(3)
+        builder.adjust(2)
 
         return builder.as_markup(resize_keyboard=True)
 
