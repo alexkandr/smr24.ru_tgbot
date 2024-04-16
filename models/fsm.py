@@ -11,7 +11,6 @@ class AddressState(StatesGroup):
 
 class PurchaseState(StatesGroup):
     ChooseAddress = State()
-    PaymentMethod = State()
     Accept = State()
 
 

@@ -13,25 +13,6 @@ from models.db import cart_tab, orders_tab, ordered_items_tab, addresses_tab, it
 router = Router()
 
 
-@router.callback_query(PurchaseState.PaymentMethod)
-async def payment_method(call : CallbackQuery, state : FSMContext):
-    match call.data:
-        case 'cash':
-            await state.update_data(payment_method='cash')
-            await state.set_state(PurchaseState.Accept)
-            await state.update_data(order=await AcceptanceForm(call=call, state=state))
-        case 'transfer':
-            await state.update_data(payment_method='transfer')
-            await state.set_state(PurchaseState.Accept)
-            await state.update_data(order=await AcceptanceForm(call=call, state=state))
-        case 'SBP':
-            pass
-        case 'cancel':
-            await state.clear()
-
-    await call.message.delete()
-    await call.answer()
-
 @router.callback_query(PurchaseState.Accept)
 async def accept(call : CallbackQuery, state : FSMContext):
     match call.data:
@@ -61,10 +42,10 @@ async def AcceptanceForm(call : CallbackQuery, state: FSMContext):
         Всего:
             {purchases[1]} рублей
         Способ оплаты:
-            {data['payment_method']}''',
+            По реквезитам $123456789$''',
         reply_markup=PurchaseKeyboards.get_acceptance_form()
     )
-    return OrderDAO(user_id=call.from_user.id, address_id=data['chosen_address'], total_sum=purchases[1], payment_method=data['payment_method'])
+    return OrderDAO(user_id=call.from_user.id, address_id=data['chosen_address'], total_sum=purchases[1], payment_method='bank_transfer')
 
 async def cart_to_str(cart : list[CartItemDAO]):
     purchases = ''

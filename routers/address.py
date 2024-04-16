@@ -9,6 +9,7 @@ from models.db import addresses_tab, images_tab
 from models.fsm import AddressState, PurchaseState
 from models.callback_factory import AddressCallbackFactory
 from models.keyboards import AddressKeyboards, MenuKeyboards
+from routers.purchase import AcceptanceForm
 
 router = Router()
 cities = ['Красноярск']
@@ -69,10 +70,9 @@ async def will_to_change_address(call : CallbackQuery, callback_data : AddressCa
     match callback_data.action:
         case 'address':
             if (await state.get_state()) == PurchaseState.ChooseAddress:
-                await state.set_state(PurchaseState.PaymentMethod)
+                await state.set_state(PurchaseState.Accept)
                 await state.update_data(chosen_address = callback_data.address_id)
-                await call.message.answer_photo(photo=await images_tab.get_by_name('Payment_method'),
-                    caption='', reply_markup=AddressKeyboards.list_payment_method())
+                await state.update_data(order=await AcceptanceForm(call=call, state=state))
                 await call.message.delete()  
 
         case 'remove':
