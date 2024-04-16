@@ -22,3 +22,4 @@ class ItemCallbackFactory(CallbackData, prefix="item"):
 
 class CategoryCallbackFactory(CallbackData, prefix="c"):
     c : str
+    manufacturer: Optional[str]

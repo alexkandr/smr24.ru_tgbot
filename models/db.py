@@ -32,11 +32,23 @@ def log_query_result(result) -> None:
     logging.info(info)
 
 class ItemsTable:
+    groups_dict = {
+        0: "Ремонтные составы",
+        1: "Смеси для пола",
+        2: "Клеящий состав",
+        3: "Штукатурка ",
+        4: "Лакокрасочные материалы",
+        5: "Затирка",
+        6: "Грунт",
+        7: "Пропитки, добавки, пластификаторы",
+        8: "Шпаклевка",
+    }
+
     async def connect(self):
         self.conn = await psycopg.AsyncConnection.connect(DATABASE, autocommit=True)
 
     async def get_categories(self, page : int) -> list[str]:
-        categories = ["Ремонтные составы", "Смеси для пола", "Клеящий состав", "Штукатурка ", "Лакокрасочные материалы", "Затирка", "Грунт", "Пропитки, добавки, пластификаторы", "Шпаклевка", "Инструменты", "Изоляция"]
+        categories = range(0,9)
         cursor = (page-1)*4
         return categories[cursor: cursor + 4] 
 
@@ -63,7 +75,27 @@ class ItemsTable:
             result = await cur.fetchall()
             log_query_result(result)
             return result
+    async def get_by_cat_man(self, category : str, manufacturer:str) -> list[ItemDAO]:
+        if manufacturer == 'other':
+            query = f"select * from items where group_name = '{category}' and manufacturer_name is null"
+        else:
+            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}'"
+        log_query(query)
+        async with self.conn.cursor(row_factory=class_row(ItemDAO)) as cur:
+            await cur.execute(query)
+            result = await cur.fetchall()
+            log_query_result(result)
+            return result
     
+    async def get_manufacturers_by_category(self, category : str) -> list[str]:
+        query = f"select distinct manufacturer_name from items where group_name = '{category}'"
+        log_query(query)
+        async with self.conn.cursor() as cur:
+            await cur.execute(query)
+            result = [i[0] for i in await cur.fetchall()]
+            log_query_result(result)
+            return result
+
     async def get_by_id(self, item_id : int) -> ItemDAO:
         query = f"select * from items where id = '{item_id}'"
         log_query(query)
