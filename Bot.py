@@ -14,8 +14,12 @@ from models.db import images_tab
 load_dotenv()
 TOKEN =  getenv('BOT_TOKEN')
 rel_path = pathlib.Path(__file__).parent.resolve()
-
-logging.basicConfig(level=logging.INFO, filename=rel_path.joinpath("./logs/py_log.log"),filemode="w")
+logging.basicConfig(level=logging.INFO, 
+                    filename=rel_path.joinpath("./logs/py_log.log"),
+                    filemode="w",)
+                    #format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logging.info('Starting Bot')
+logging.getLogger("psycopg.pool").setLevel(logging.INFO)
 
 
 async def main():
