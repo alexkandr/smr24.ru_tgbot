@@ -1,6 +1,7 @@
 from os import getenv
 import asyncio
 import logging
+from datetime import datetime
 from models.dao import ItemDAO, OrderDAO, OrderItemDAO, CartItemDAO, AddressDAO
 
 import psycopg_pool
@@ -10,8 +11,6 @@ from aiogram.types import FSInputFile
 
 load_dotenv()
 DATABASE = getenv('DATABASE')
-ADMIN = getenv('ADMIN_CHAT_ID')
-logging.getLogger("psycopg.pool").setLevel(logging.INFO)
 
 class DataBase:
 
@@ -196,12 +195,28 @@ class AddressesTable:
             
 class OrdersTable:
 
-    async def add(self, order : OrderDAO) -> int:
-        return
+    async def add(self, order : OrderDAO) -> str:
+        order.id = str(abs(hash(datetime.now())))
+        order.creating_time = datetime.now()
+        values = list(order.values_as_tuple())
+        
+        query = "insert into orders (id, user_id, address_id, total_sum, \
+            payment_method, status, creating_time) values \
+                ('{}', {}, {}, {}, '{}', '{}', '{}')".format(order.id, *values)
+        
+        await db.execute(query, fetch=False)
+        return order.id
         
     async def get_all(self, status : str = '') -> list[OrderDAO]:
-        return
+        if status == '':
+            query = 'select * from orders'
+        else:
+            query = f"select * from orders where status = '{status}'"
+        return (await db.execute(query, class_row(OrderDAO)))
         
+    async def get_by_user_id(self, user_id : str = '', status='') -> list[OrderDAO]:
+        query = f"select * from orders where user_id = '{user_id}'" 
+        return (await db.execute(query, class_row(OrderDAO)))
 
 class ImagesTable:
 
@@ -230,12 +245,16 @@ class ImagesTable:
         
 
 class OrderedItemsTable:
-        
-    async def add_cart(self, cart : list[OrderItemDAO], order_id : int) -> None:
-        return
+         
+    async def add_item(self, item_id : str, order_id: str, amount :float) -> None:
+        query=f"insert into ordered_items (item_id, order_id, amount) values\
+            ('{item_id}', '{order_id}', {amount})"
+        await db.execute(query, fetch=False)
         
     async def get_by_order_id(self, order_id : int) -> list[OrderItemDAO]:
-        return
+        query = f"select * from ordered_items where order_id = '{order_id}'"
+        result = await db.execute(query, class_row(OrderItemDAO), fetch=True)
+        return result
         
 class CartsTable:
 
@@ -311,6 +330,7 @@ class CartsTable:
         
 db = DataBase(logger_name='MainPgDB')
 async def connect():
+    logging.getLogger("psycopg.pool").setLevel(logging.INFO)
     await db.connect()
 
 items = ItemsTable()

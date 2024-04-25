@@ -20,10 +20,11 @@ async def accept(call : CallbackQuery, state : FSMContext):
             order = (await state.get_data())['order']
             order_id = await orders.add(order)
             cart = await carts.get_cart(call.from_user.id)
-            await ordered_items.add_cart(cart, order_id)
+            for item in cart:
+                await ordered_items.add_item(item_id=item.item_id, order_id=order_id, amount=item.amount)
             await carts.clear_cart(call.from_user.id)
             await state.clear()
-            await call.message.answer('Ваш заказ сохранён. Ожидаем оплату')
+            await call.message.answer(f'Ваш заказ сохранён под номером {order_id}.\n Ожидаем оплату')
         case _:
             await state.clear()
             await call.message.answer(text='что теперб?')
@@ -33,14 +34,15 @@ async def accept(call : CallbackQuery, state : FSMContext):
 async def AcceptanceForm(call : CallbackQuery, state: FSMContext):
     data = await state.get_data()
     address = await addresses.get_by_id(data['chosen_address'])
-    purchases = await cart_to_str(await carts.get_cart(call.from_user.id))
+    curr_cart = await carts.get_cart(call.from_user.id)
+    purchases, sum = await cart_to_str(curr_cart)
     await call.message.answer(
         text=f'''Давай всё проверим:
         Адрес: 
             {address.to_string()}
-        Товары:{purchases[0]}
+        Товары:{purchases}
         Всего:
-            {purchases[1]} рублей
+            {sum} рублей
         Оплата:
             Поставщик: ООО "АртКомплект", ИНН 2465256841, КПП 246601001, 660048, Красноярский край, г.о. город Красноярск, г
 Красноярск, ул Караульная, д. 7, тел.: 391241-85-44
@@ -53,7 +55,8 @@ async def AcceptanceForm(call : CallbackQuery, state: FSMContext):
             ''',
         reply_markup=PurchaseKeyboards.get_acceptance_form()
     )
-    return OrderDAO(user_id=call.from_user.id, address_id=data['chosen_address'], total_sum=purchases[1], payment_method='bank_transfer')
+    return OrderDAO(user_id=call.from_user.id, address_id=data['chosen_address'],
+                      total_sum=sum, payment_method='bank_transfer')
 
 async def cart_to_str(cart : list[CartItemDAO]):
     purchases = ''

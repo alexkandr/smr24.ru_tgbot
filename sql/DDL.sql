@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS items(
     price_per_unit NUMERIC,
     units VARCHAR(255),
     currency VARCHAR(3),
-    avaible INTEGER
+    avaible INTEGER,
+    visible BOOLEAN
 );
 CREATE Table IF NOT EXISTS carts(
     user_id INTEGER,
@@ -46,3 +47,20 @@ CREATE Table IF NOT EXISTS carts(
     amount INTEGER
 );
 ALTER TABLE carts ADD CONSTRAINT CartItemsUnique UNIQUE(user_id, item_id);
+
+CREATE TABLE IF NOT EXISTS orders (
+    id VARCHAR(20) PRIMARY KEY,
+    user_id INTEGER,
+    address_id INTEGER REFERENCES addresses(id),
+    total_sum NUMERIC,
+    payment_method VARCHAR(50),
+    status VARCHAR(50),
+    creating_time TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS ordered_items(
+    item_id VARCHAR(255) REFERENCES items(id),
+    order_id Varchar(20) REFERENCES orders(id),
+    amount FLOAT
+);
+ALTER TABLE ordered_items ADD CONSTRAINT OrderedItemsUnique UNIQUE(item_id, order_id);

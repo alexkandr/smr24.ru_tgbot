@@ -15,12 +15,13 @@ class ItemDAO:
     price_per_unit : Decimal
     units : str
     currency : str
+    visible : bool = True
     avaible : int = 0
     
     def __init__(self, id : str , group_name : str, name : str, 
                  description : str, manufacturer_name : str, image : str, 
                  price_per_unit : int, units : str, currency : str, 
-                 avaible : int) -> None:
+                 avaible : int, visible :bool = True) -> None:
         self.id = id
         self.group_name = group_name
         self.name = name
@@ -31,12 +32,13 @@ class ItemDAO:
         self.units = units
         self.currency = currency
         self.avaible = avaible
+        self.visible = visible
         
     def values_as_tuple(self) -> tuple[str, str, str, str, str, 
-                                        int, Decimal, str, str, int]:
+                                        int, Decimal, str, str, int, bool]:
         return (self.id, self.name, self.description, self.group_name, 
                 self.manufacturer_name, self.image, self.price_per_unit, 
-                self.units, self.currency, self.avaible)
+                self.units, self.currency, self.avaible, self.visible)
     
     def price_str(self) -> str:
         return str(self.price_per_unit) + ' за ' + self.units
@@ -53,7 +55,7 @@ class ItemDAO:
 class CartItemDAO:
     user_id : int
     item_id : int
-    amount : int
+    amount : float
     def __int__(self, user_id : int, item_id : int, amount : int):
         self.amount = amount
         self.user_id = user_id
@@ -63,10 +65,10 @@ class CartItemDAO:
         return (self.user_id, self.item_id, self.amount)
 @dataclass
 class OrderItemDAO:
-    order_id : int
+    order_id : str
     item_id : int
     amount : int
-    def __int__(self, order_id : int, item_id : int,  amount : int):
+    def __int__(self, order_id : str, item_id : int,  amount : int):
         self.amount = amount
         self.item_id = item_id
         self.order_id = order_id
@@ -76,7 +78,7 @@ class OrderItemDAO:
 
 @dataclass
 class OrderDAO:
-    id : int
+    id : str
     user_id : int
     address_id : int
     total_sum : Decimal
@@ -84,7 +86,7 @@ class OrderDAO:
     status : str
     creating_time : datetime
 
-    def __init__(self, id : int = 0, user_id : int = 0, address_id : int = 0, 
+    def __init__(self, id : str = '', user_id : int = 0, address_id : int = 0, 
                  total_sum : Decimal = 0, payment_method : str = '', 
                  status : str = 'created', creating_time : datetime = 
                  datetime.now()):
