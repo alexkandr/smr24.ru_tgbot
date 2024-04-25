@@ -3,7 +3,6 @@ import asyncio
 import logging
 from models.dao import ItemDAO, OrderDAO, OrderItemDAO, CartItemDAO, AddressDAO
 
-import psycopg
 import psycopg_pool
 from psycopg.rows import class_row, dict_row
 from dotenv import load_dotenv
@@ -13,47 +12,75 @@ load_dotenv()
 DATABASE = getenv('DATABASE')
 ADMIN = getenv('ADMIN_CHAT_ID')
 
-class DataBase:
-    pool = None
 
-    async def connect(self):
-        self.pool = psycopg_pool.AsyncConnectionPool(conninfo=DATABASE, min_size=4,
-                                                      open = True)
+class DataBase:
+
+    def __init__(self, logger_name = __name__) -> None:
+        self.logger = logging.getLogger(logger_name)
+
+    async def connect(self, conninfo = DATABASE):
+        """
+    establishes connection to db
+    
+    Parameters
+    ----------
+    conninfo : connection string
+    
+    Returns
+    ------- 
+    None
+        """
+        self.logger.info('Establishing database connection')
+        self.pool = psycopg_pool.AsyncConnectionPool(conninfo=conninfo, min_size=4, max_size=10, max_waiting=5)
+        self.logger.info('db connected')
         await self.pool.open()
-        logging.info('db connected')
+        await self.pool.wait()
+        self.logger.info('pool opened')
     
         
     async def execute(self, command: str, factory = None, fetch: bool = False ):
+        """
+executes command to connected db
+
+Parameters
+----------
+command : query to db
+factory : row_factory for cursor
+fetch : true if execution should return result of quer
+
+Returns
+------- 
+None if fetch == False, else list of results. List of tuples if factory is None
+        """
         pre_log_info = "Query to DATABASE:"
         for i in command.split('\n'):
             pre_log_info += ('\n\t' + i)
-        logging.info(pre_log_info)
+        self.logger.info(pre_log_info)
         
+
         async with self.pool.connection() as conn:
-            logging.info('connection created')
+            self.logger.info('connection created')
             async with conn.cursor(row_factory=factory) as cursor:
-                logging.info('cursor created')
+                self.logger.info('cursor created')
                 await cursor.execute(command)
                 result = None
                 if fetch == True:
                     result = await cursor.fetchall() 
                     if result is None:
                         post_log_info ='None results'
-                    elif type(result) == list:
-                        post_log_info = str(len(result)) + 'results'
+                    elif len(result) !=1 :
+                        post_log_info = str(len(result)) + ' results'
                     else:
                         post_log_info = f'1 {type(result)} result: \n {result}'
 
                     post_log_info = 'Query returned ' + post_log_info
-                    logging.info(post_log_info)
+                    self.logger.info(post_log_info)
 
 
-                return result
+        return result
     
     async def close(self):
         await self.pool.close()
-
-db = DataBase()
 
 class ItemsTable:
 
@@ -172,7 +199,7 @@ class ImagesTable:
     async def get_by_name(self, file_name : str) -> str:
         query = f"select file_id from images where file_name = '{file_name}' "
         
-        result = (await db.execute(query, fetch=True))[0]
+        result = (await db.execute(query, fetch=True))[0][0]
         return result
         
 
@@ -256,6 +283,7 @@ class CartsTable:
         
 
         
+db = DataBase(logger_name='MainPgDB')
 async def connect():
     await db.connect()
 
