@@ -69,9 +69,9 @@ class MenuKeyboards:
     def get_menu() -> ReplyKeyboardMarkup:
         
         builder = ReplyKeyboardBuilder()    
-        for name in ['Каталог', 'Поиск', 'Корзина', 'Адрес', 'Связь']:
+        for name in ['Каталог', 'Поиск', 'Корзина', 'Мои адреса', 'Связь']:
             builder.add(KeyboardButton(text=name))
-        builder.adjust(3)
+        builder.adjust(2)
 
         return builder.as_markup(resize_keyboard=True)
 

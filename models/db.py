@@ -11,7 +11,7 @@ from aiogram.types import FSInputFile
 load_dotenv()
 DATABASE = getenv('DATABASE')
 ADMIN = getenv('ADMIN_CHAT_ID')
-
+logging.getLogger("psycopg.pool").setLevel(logging.INFO)
 
 class DataBase:
 
@@ -59,23 +59,21 @@ None if fetch == False, else list of results. List of tuples if factory is None
         
 
         async with self.pool.connection() as conn:
-            self.logger.info('connection created')
+            self.logger.info(f'connection created \n Currently avaible {self.pool.get_stats()["pool_available"]} connections')
+            
             async with conn.cursor(row_factory=factory) as cursor:
-                self.logger.info('cursor created')
                 await cursor.execute(command)
                 result = None
                 if fetch == True:
                     result = await cursor.fetchall() 
                     res_len=len(result)
                     if res_len !=1 :
-                        post_log_info = f'list of {res_len} {type(result[0])}'
+                        post_log_info = f'list of {res_len} {type(result[0]) if res_len != 0 else "None"}'
                     else:
                         post_log_info = f'1 {type(result[0])} result: \n {result}'
 
                     post_log_info = 'Query returned ' + post_log_info
                     self.logger.info(post_log_info)
-            self.logger.info('cursor closed')
-        self.logger.info('connection closed')
 
 
         return result
@@ -90,7 +88,7 @@ class ItemsTable:
         2: "Клеящий состав",
         3: "Затирка",
         4: "Шпаклевка",
-        5: "Штукатурка ",
+        5: "Штукатурка",
         6: "Грунт",
         7: "Пропитки, добавки, пластификаторы",
         8: "Лакокрасочные материалы",
@@ -119,6 +117,16 @@ class ItemsTable:
         result = await db.execute(command=query,
                                   fetch=True)
         return [r[0] for r in result]
+    
+    async def get_by_cat_man(self, category : str, manufacturer:str) -> list[ItemDAO]:
+        if manufacturer == 'other':
+            query = f"select * from items where group_name = '{category}' and manufacturer_name is null"
+        else:
+            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}'"
+        
+        result = await db.execute(command=query, factory=class_row(ItemDAO),
+                                  fetch=True)
+        return result    
 
     async def get_by_category(self, category : str) -> list[ItemDAO]:
         query = f"select * from items where group_name = '{category}'"

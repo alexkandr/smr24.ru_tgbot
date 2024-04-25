@@ -17,12 +17,12 @@ cities = ['Красноярск']
 #Menu message handler
 ###################################
 
-@router.message(F.text ==  'Адрес')
+@router.message(F.text ==  'Мои адреса')
 async def address_menu(message : Message):
     
     #Check Address
-    addresses = await addresses.get_by_user_id(message.from_user.id)
-    if addresses == []:
+    ads = await addresses.get_by_user_id(message.from_user.id)
+    if ads == []:
         caption = 'Здесь пока ничего нет'
     else:
         caption = 'Ваши адреса:'
@@ -30,7 +30,7 @@ async def address_menu(message : Message):
     #answer
     await message.answer_photo( photo=await images.get_by_name('PhotoArtComplect'),
         caption=caption,
-        reply_markup=AddressKeyboards.list_addresses(addresses))
+        reply_markup=AddressKeyboards.list_addresses(ads))
 
 
 
@@ -42,8 +42,7 @@ async def chosen_address_to_delete(call : CallbackQuery, callback_data : Address
     match callback_data.action:
         
         case 'address':
-            addresses = await addresses.get_by_user_id(call.from_user.id)
-            address = addresses[callback_data.address_index]
+            address = (await addresses.get_by_user_id(call.from_user.id))[callback_data.address_index]
             await addresses.delete_by_id(address.id)
 
         case _:
@@ -72,8 +71,7 @@ async def will_to_change_address(call : CallbackQuery, callback_data : AddressCa
             if (await state.get_state()) == PurchaseState.ChooseAddress:
                 await state.set_state(PurchaseState.Accept)
                 await state.update_data(chosen_address = callback_data.address_id)
-                await state.update_data(order=await AcceptanceForm(call=call, state=state))
-                await call.message.delete()  
+                await state.update_data(order=await AcceptanceForm(call=call, state=state)) 
 
         case 'remove':
             await state.set_state(AddressState.delete_address)
@@ -137,8 +135,8 @@ async def add_street(message : Message, state : FSMContext):
         office=data['office']
     )
     await message.answer('Заверешено', reply_markup=MenuKeyboards.get_menu())
-    addresses = await addresses.get_by_user_id(message.from_user.id)
-    if addresses == []:
+    user_addresses = await addresses.get_by_user_id(message.from_user.id)
+    if user_addresses == []:
         caption = 'Здесь пока ничего нет'
     else:
         caption = 'Ваши адреса:'
@@ -146,5 +144,5 @@ async def add_street(message : Message, state : FSMContext):
     #answer
     await message.answer_photo( photo=await images.get_by_name('PhotoArtComplect'),
         caption=caption,
-        reply_markup=AddressKeyboards.list_addresses(addresses))
+        reply_markup=AddressKeyboards.list_addresses(user_addresses))
 

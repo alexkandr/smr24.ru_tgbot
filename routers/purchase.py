@@ -21,9 +21,9 @@ async def accept(call : CallbackQuery, state : FSMContext):
             order_id = await orders.add(order)
             cart = await carts.get_cart(call.from_user.id)
             await ordered_items.add_cart(cart, order_id)
-            await cart.clear_cart(call.from_user.id)
+            await carts.clear_cart(call.from_user.id)
             await state.clear()
-            await call.message.answer('Ваш заказ сохранён и скоро будет доставлен')
+            await call.message.answer('Ваш заказ сохранён. Ожидаем оплату')
         case _:
             await state.clear()
             await call.message.answer(text='что теперб?')
