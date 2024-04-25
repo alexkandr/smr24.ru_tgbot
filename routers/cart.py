@@ -17,12 +17,12 @@ async def cart_menu(message : Message):
     cart = await cart_tab.get_cart(message.from_user.id)
 
     if cart:
-        await message.answer_photo(photo=await images_tab.get_by_name('Cart.png'),
+        await message.answer_photo(photo=await images_tab.get_by_name('PhotoArtComplect'),
         caption=cart_message,
         reply_markup=await CartKeyboards.get_cart(cart, message.from_user.id))
         return 
     
-    await message.answer_photo( photo=await images_tab.get_by_name('Empty_cart'), caption=cart_message)
+    await message.answer_photo( photo=await images_tab.get_by_name('PhotoArtComplect'), caption=cart_message)
 
     
 @router.callback_query(CartCallbackFactory.filter())
@@ -35,7 +35,7 @@ async def cart_action(call : CallbackQuery, callback_data : CartCallbackFactory,
         case 'buy':
             await state.set_state(PurchaseState.ChooseAddress)
             await call.message.answer_photo(
-                photo=await images_tab.get_by_name('Address'),
+                photo=await images_tab.get_by_name('PhotoArtComplect'),
                 caption='Выберите адрес доставки', 
                 reply_markup=AddressKeyboards.list_addresses(await addresses_tab.get_by_user_id(callback_data.user_id)))
             await call.answer()

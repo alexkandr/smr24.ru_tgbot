@@ -14,7 +14,7 @@ router = Router()
 @router.message(Command(commands=['Search']))
 async def search_que(message : Message, state : FSMContext):
     await message.answer_photo(
-            photo=await images_tab.get_by_name('Search'),
+            photo=await images_tab.get_by_name('PhotoArtComplect'),
             caption=search_text,
             reply_markup=MenuKeyboards.show_cancel_button())
     await state.set_state(SearchState.Search)

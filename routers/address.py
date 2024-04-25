@@ -28,7 +28,7 @@ async def address_menu(message : Message):
         caption = 'Ваши адреса:'
 
     #answer
-    await message.answer_photo( photo=await images_tab.get_by_name('Address'),
+    await message.answer_photo( photo=await images_tab.get_by_name('PhotoArtComplect'),
         caption=caption,
         reply_markup=AddressKeyboards.list_addresses(addresses))
 
@@ -144,7 +144,7 @@ async def add_street(message : Message, state : FSMContext):
         caption = 'Ваши адреса:'
 
     #answer
-    await message.answer_photo( photo=await images_tab.get_by_name('Address'),
+    await message.answer_photo( photo=await images_tab.get_by_name('PhotoArtComplect'),
         caption=caption,
         reply_markup=AddressKeyboards.list_addresses(addresses))
 

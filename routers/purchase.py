@@ -41,8 +41,16 @@ async def AcceptanceForm(call : CallbackQuery, state: FSMContext):
         Товары:{purchases[0]}
         Всего:
             {purchases[1]} рублей
-        Способ оплаты:
-            По реквезитам $123456789$''',
+        Оплата:
+            Поставщик: ООО "АртКомплект", ИНН 2465256841, КПП 246601001, 660048, Красноярский край, г.о. город Красноярск, г
+Красноярск, ул Караульная, д. 7, тел.: 391241-85-44
+            Получатель: ООО "АртКомплект"
+            Банк получателя: КРАСНОЯРСКОЕ ОТДЕЛЕНИЕ N 8646 ПАО СБЕРБАНК г.Красноярск
+            БИК: 040407627
+            Номер счёта: 30101810800000000627
+            ИНН: 2465256841
+            КПП 246601001
+            ''',
         reply_markup=PurchaseKeyboards.get_acceptance_form()
     )
     return OrderDAO(user_id=call.from_user.id, address_id=data['chosen_address'], total_sum=purchases[1], payment_method='bank_transfer')

@@ -14,7 +14,7 @@ router = Router()
 @router.message(Command(commands=["start"]))
 async def start(message : Message):
     m = await message.answer_photo(
-        photo= await images_tab.get_by_name('welcome.png'),
+        photo= await images_tab.get_by_name('PhotoArtComplect'),
         caption=start_command, 
         reply_markup=MenuKeyboards.get_menu())
 
@@ -22,7 +22,7 @@ async def start(message : Message):
 async def contact_us_menu(message: Message):
     
     await message.answer_photo(
-        photo=await images_tab.get_by_name('ContactUs'),
+        photo=await images_tab.get_by_name('PhotoArtComplect'),
         caption= contactus_command,
         reply_markup=MenuKeyboards.get_contacts())
 
