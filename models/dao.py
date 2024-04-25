@@ -101,8 +101,9 @@ class AddressDAO:
     house : str
     building : str
     office : str
+    visible:bool
 
-    def __init__(self, id : int = 0,user_id :int = 0,index : str = '',country : str = '',city : str = '',street : str = '',house : str = '',building : str = '',office : str = ''):
+    def __init__(self, id : int = 0,user_id :int = 0,index : str = '',country : str = '',city : str = '',street : str = '',house : str = '',building : str = '',office : str = '', visible=True):
         self.id =  id 
         self.user_id=  user_id
         self.index =  index 
@@ -112,6 +113,7 @@ class AddressDAO:
         self.house =  house 
         self.building =  building 
         self.office =  office 
+        self.visible= visible
 
     def values_as_tuple(self) ->tuple[int,int,str,str,str,str,str,str,str]:
         return (self.id, self.user_id, self.index, self.country, self.city, self.street, self.house, self.building, self.office)

@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS addresses(
     street VARCHAR(255),
     house VARCHAR(255),
     building VARCHAR(255),
-    office VARCHAR(255)
+    office VARCHAR(255),
+    visible BOOLEAN
 );
 
 CREATE TABLE IF NOT EXISTS items(

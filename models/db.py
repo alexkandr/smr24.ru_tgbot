@@ -36,12 +36,12 @@ class ItemsTable:
         0: "Ремонтные составы",
         1: "Смеси для пола",
         2: "Клеящий состав",
-        3: "Штукатурка ",
-        4: "Лакокрасочные материалы",
-        5: "Затирка",
+        3: "Затирка",
+        4: "Шпаклевка",
+        5: "Штукатурка ",
         6: "Грунт",
         7: "Пропитки, добавки, пластификаторы",
-        8: "Шпаклевка",
+        8: "Лакокрасочные материалы",
     }
 
     async def connect(self):
@@ -122,8 +122,11 @@ class AddressesTable:
     async def connect(self):
         self.conn = await psycopg.AsyncConnection.connect(DATABASE, autocommit=True)
 
-    async def get_by_user_id(self, user_id : int) -> list[class_row]:
-        query = f'select * from addresses where user_id = {user_id}'
+    async def get_by_user_id(self, user_id : int, visible_only :bool = True) -> list[class_row]:
+        if visible_only:
+            query = f'select * from addresses where user_id = {user_id} and visible = True'
+        else:
+            query = f'select * from addresses where user_id = {user_id}'
         log_query(query)
         async with self.conn.cursor(row_factory=class_row(AddressDAO)) as cur:
             await cur.execute(query)
@@ -141,19 +144,19 @@ class AddressesTable:
             return result
 
     async def delete_by_user_id(self, user_id : int):
-        query = f'delete from addresses where user_id = {user_id}'
+        query = f'update addresses set visible = false where user_id = {user_id}'
         log_query(query)
         async with self.conn.cursor(row_factory=class_row(AddressDAO)) as cur:
             await cur.execute(query)
 
     async def delete_by_id(self, id : int):
-        query = f'delete from addresses where id = {id}'
+        query = f'update addresses set visible = false where id = {id}'
         log_query(query)
         async with self.conn.cursor(row_factory=class_row(AddressDAO)) as cur:
             await cur.execute(query)
 
-    async def add(self,user_id :int = 0,index : str = '',country : str = '',city : str = '',street : str = '',house : str = '',building : str = '',office : str = ''):
-        query = f"insert into addresses (user_id, index, country, city, street, house, building, office) values({user_id}, '{index}', '{country}', '{city}', '{street}', '{house}', '{building}', '{office}')" 
+    async def add(self,user_id :int = 0,index : str = '',country : str = '',city : str = '',street : str = '',house : str = '',building : str = '',office : str = '', visible=True):
+        query = f"insert into addresses (user_id, index, country, city, street, house, building, office, visible) values({user_id}, '{index}', '{country}', '{city}', '{street}', '{house}', '{building}', '{office}', '{visible}')" 
         log_query(query)
         async with self.conn.cursor(row_factory=class_row(AddressDAO)) as cur:
             await cur.execute(query)
