@@ -23,3 +23,9 @@ class ItemCallbackFactory(CallbackData, prefix="item"):
 class CategoryCallbackFactory(CallbackData, prefix="c"):
     c : str
     manufacturer: Optional[str]
+
+class OrderCallbackFactory(CallbackData, prefix="order"):
+    action : str
+    order_id : Optional[str]
+    item_id : Optional[str]
+    amount : Optional[int]

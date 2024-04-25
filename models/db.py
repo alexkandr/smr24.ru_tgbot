@@ -196,13 +196,13 @@ class AddressesTable:
 class OrdersTable:
 
     async def add(self, order : OrderDAO) -> str:
-        order.id = str(abs(hash(datetime.now())))
+        order.id = 'b_' + str(abs(hash(datetime.now())))
         order.creating_time = datetime.now()
         values = list(order.values_as_tuple())
         
         query = "insert into orders (id, user_id, address_id, total_sum, \
-            payment_method, status, creating_time) values \
-                ('{}', {}, {}, {}, '{}', '{}', '{}')".format(order.id, *values)
+            payment_method, status, payment_status, creating_time) values \
+                ('{}', {}, {}, {}, '{}', '{}', '{}', '{}')".format(order.id, *values)
         
         await db.execute(query, fetch=False)
         return order.id
@@ -212,12 +212,20 @@ class OrdersTable:
             query = 'select * from orders'
         else:
             query = f"select * from orders where status = '{status}'"
-        return (await db.execute(query, class_row(OrderDAO)))
+        return (await db.execute(query, class_row(OrderDAO), fetch=True))
         
     async def get_by_user_id(self, user_id : str = '', status='') -> list[OrderDAO]:
-        query = f"select * from orders where user_id = '{user_id}'" 
-        return (await db.execute(query, class_row(OrderDAO)))
-
+        query = f"select * from orders where user_id = {user_id}" 
+        return (await db.execute(query, class_row(OrderDAO), fetch=True))
+    
+    async def get_by_id(self, order_id : str = '', status='') -> OrderDAO:
+        query = f"select * from orders where id = '{order_id}'" 
+        return (await db.execute(query, class_row(OrderDAO), fetch=True))[0]
+    
+    async def update_status(self, order_id : str = '', status='', payment_status :str = '') -> OrderDAO:
+        query = f"update orders set status = '{status}', payment_status = '{payment_status}' where id = '{order_id}'" 
+        await db.execute(query)
+    
 class ImagesTable:
 
     async def add(self, file_id : str, file_name : str) -> None:

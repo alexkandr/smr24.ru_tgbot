@@ -84,11 +84,12 @@ class OrderDAO:
     total_sum : Decimal
     payment_method : str
     status : str
+    payment_status :str
     creating_time : datetime
 
     def __init__(self, id : str = '', user_id : int = 0, address_id : int = 0, 
                  total_sum : Decimal = 0, payment_method : str = '', 
-                 status : str = 'created', creating_time : datetime = 
+                 status : str = 'создан', payment_status = 'неоплачен', creating_time : datetime = 
                  datetime.now()):
         self.id = id
         self.user_id = user_id
@@ -96,11 +97,45 @@ class OrderDAO:
         self.total_sum = total_sum
         self.payment_method = payment_method
         self.status = status
+        self.payment_status = payment_status
         self.creating_time = creating_time
 
-    def values_as_tuple(self) -> tuple[int, int, Decimal, str, str, datetime]:
+    def values_as_tuple(self) -> tuple[int, int, Decimal, str, str, str, datetime]:
         return (self.user_id, self.address_id, self.total_sum, 
-                self.payment_method, self.status, self.creating_time)
+                self.payment_method, self.status, self.payment_status, self.creating_time)
+    
+    def short_info(self) -> str:
+        return f'''
+Заказ номер /{self.id}:
+    Дата : {self.creating_time.date()}
+    Сумма : {self.total_sum} рублей
+    Статус заказа: {self.status}
+    Статус оплаты: {self.payment_status}'''
+
+    def long_info(self, address: str ='') -> str:
+        if self.payment_status == 'неоплачен':
+            req = '''
+Реквезиты для оплаты:
+    Поставщик: ООО "АртКомплект", ИНН 2465256841, КПП 246601001, 660048, Красноярский край, г.о. город Красноярск, г. Красноярск, ул Караульная, д. 7, тел.: 391241-85-44
+    Получатель: ООО "АртКомплект"
+    Банк получателя: КРАСНОЯРСКОЕ ОТДЕЛЕНИЕ N 8646 ПАО СБЕРБАНК г.Красноярск
+    БИК: 040407627
+    Номер счёта: 30101810800000000627
+    ИНН: 2465256841
+    КПП 246601001
+'''
+        else:
+            req = ''
+        return f'''
+Информация о заказе
+Номер : /{self.id}
+Дата : {self.creating_time.date()}
+Сумма : {self.total_sum} рублей
+Статус заказа: {self.status}
+Способ оплаты: Банковский перевод
+Статус оплаты: {self.payment_status}
+Адрес для доставки: {address}
+''' + req + 'Состав заказа:'
     
 @dataclass
 class AddressDAO:

@@ -49,18 +49,19 @@ CREATE Table IF NOT EXISTS carts(
 ALTER TABLE carts ADD CONSTRAINT CartItemsUnique UNIQUE(user_id, item_id);
 
 CREATE TABLE IF NOT EXISTS orders (
-    id VARCHAR(20) PRIMARY KEY,
+    id VARCHAR(25) PRIMARY KEY,
     user_id INTEGER,
     address_id INTEGER REFERENCES addresses(id),
     total_sum NUMERIC,
     payment_method VARCHAR(50),
     status VARCHAR(50),
+    payment_status VARCHAR(50),
     creating_time TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS ordered_items(
     item_id VARCHAR(255) REFERENCES items(id),
-    order_id Varchar(20) REFERENCES orders(id),
-    amount FLOAT
+    order_id Varchar(25) REFERENCES orders(id),
+    amount INTEGER
 );
 ALTER TABLE ordered_items ADD CONSTRAINT OrderedItemsUnique UNIQUE(item_id, order_id);

@@ -4,9 +4,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 import decimal
 
 from models.callback_factory import AddressCallbackFactory, \
-      ItemCallbackFactory, CartCallbackFactory, CategoryCallbackFactory
+      ItemCallbackFactory, CartCallbackFactory, CategoryCallbackFactory, OrderCallbackFactory
 from models.db import items
-from models.dao import CartItemDAO, AddressDAO
+from models.dao import CartItemDAO, AddressDAO, OrderItemDAO, OrderDAO
 from models.seo_texts import contactus_url, contactus_text
 
 
@@ -69,7 +69,7 @@ class MenuKeyboards:
     def get_menu() -> ReplyKeyboardMarkup:
         
         builder = ReplyKeyboardBuilder()    
-        for name in ['Каталог', 'Поиск', 'Корзина', 'Мои адреса', 'Связь']:
+        for name in ['Каталог', 'Поиск', 'Корзина', 'Заказы', 'Мои адреса', 'Связь']:
             builder.add(KeyboardButton(text=name))
         builder.adjust(2)
 
@@ -154,7 +154,7 @@ class CartKeyboards:
             item = await items.get_by_id(line.item_id)
             t_price = item.price_per_unit * line.amount
             builder.button(
-                text=f'{item.name[:10]}... \n {line.amount}шт * {item.price_per_unit}руб = {t_price}руб', 
+                text=f'{item.name[:10]}... \n {line.amount}шт * {item.price_per_unit}₽/шт = {t_price}₽', 
                 callback_data = 
                     CartCallbackFactory(action='info', user_id=user_id,
                                         item_id=item.id, amount=line.amount)
@@ -167,7 +167,7 @@ class CartKeyboards:
                                               item_id=None, amount=None)
         )
         builder.button(
-            text=f'Купить всё за {sum}руб', 
+            text=f'Купить всё за {sum}₽', 
             callback_data=CartCallbackFactory(action='buy', user_id=user_id, 
                                               item_id=None, amount=None)
         )
@@ -211,7 +211,66 @@ class CartKeyboards:
 
         return builder.as_markup(resize_keyboard=True)
 
+class OrdersKeyboards:
+    @staticmethod 
+    async def get_order(order_items : list[OrderItemDAO], order : OrderDAO,
+                       ) -> InlineKeyboardMarkup:
+        builder = InlineKeyboardBuilder()
 
+        sum = decimal.Decimal(0)
+        for line in order_items:
+            item = await items.get_by_id(line.item_id)
+            t_price = item.price_per_unit * line.amount
+            builder.button(
+                text=f'{item.name[:10]}... \n {line.amount}шт * {item.price_per_unit}₽/шт = {t_price}₽', 
+                callback_data = 
+                    OrderCallbackFactory(action='info', order_id=None,
+                                        item_id=item.id, amount=line.amount)
+            )
+            sum += t_price
+        
+        builder.button(
+            text=f'Итоговая сумма {sum}руб', 
+            callback_data=OrderCallbackFactory(action='sum', order_id=order.id, 
+                                              item_id=None, amount=None)
+        )
+
+        if order.payment_status == 'неоплачен':
+            builder.button(
+            text=f'Отменить заказ', 
+            callback_data=OrderCallbackFactory(action='cancel', order_id=order.id, 
+                                              item_id=None, amount=None)
+        )
+
+        if order.status == 'отменён':
+            builder.button(
+            text=f'Восстановить заказ', 
+            callback_data=OrderCallbackFactory(action='restore', order_id=order.id, 
+                                              item_id=None, amount=None)
+        )   
+
+        builder.adjust(1)
+
+        return builder.as_markup()
+    
+    @staticmethod 
+    def show_item(amount : int,
+                  order_id : str) -> InlineKeyboardMarkup:
+        builder = InlineKeyboardBuilder()
+        builder.button(
+            text=f"В заказ добавлено {amount} штук", 
+            callback_data=OrderCallbackFactory(action='none', order_id=order_id,
+                                              amount=None, item_id=None)
+        )
+    
+        builder.button(
+            text='Вернуться к заказу', 
+            callback_data=OrderCallbackFactory(action='back', order_id=order_id,
+                                              amount=amount, item_id=None)
+        )
+        builder.adjust(1)
+
+        return builder.as_markup(resize_keyboard=True)
 
 class PurchaseKeyboards:
 
