@@ -7,7 +7,7 @@ from decimal import Decimal
 from models.keyboards import PurchaseKeyboards
 from models.fsm import PurchaseState
 from models.dao import OrderDAO, CartItemDAO, OrderItemDAO
-from models.db import cart_tab, orders_tab, ordered_items_tab, addresses_tab, items_tab
+from models.db import carts, orders, ordered_items, addresses, items
 
 
 router = Router()
@@ -18,10 +18,10 @@ async def accept(call : CallbackQuery, state : FSMContext):
     match call.data:
         case 'Accept':
             order = (await state.get_data())['order']
-            order_id = await orders_tab.add(order)
-            cart = await cart_tab.get_cart(call.from_user.id)
-            await ordered_items_tab.add_cart(cart, order_id)
-            await cart_tab.clear_cart(call.from_user.id)
+            order_id = await orders.add(order)
+            cart = await carts.get_cart(call.from_user.id)
+            await ordered_items.add_cart(cart, order_id)
+            await cart.clear_cart(call.from_user.id)
             await state.clear()
             await call.message.answer('Ваш заказ сохранён и скоро будет доставлен')
         case _:
@@ -32,8 +32,8 @@ async def accept(call : CallbackQuery, state : FSMContext):
 
 async def AcceptanceForm(call : CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    address = await addresses_tab.get_by_id(data['chosen_address'])
-    purchases = await cart_to_str(await cart_tab.get_cart(call.from_user.id))
+    address = await addresses.get_by_id(data['chosen_address'])
+    purchases = await cart_to_str(await carts.get_cart(call.from_user.id))
     await call.message.answer(
         text=f'''Давай всё проверим:
         Адрес: 
@@ -59,7 +59,7 @@ async def cart_to_str(cart : list[CartItemDAO]):
     purchases = ''
     sum = Decimal(0)
     for line in cart:
-        item = await items_tab.get_by_id(line.item_id)
+        item = await items.get_by_id(line.item_id)
         purchases += f"\n{' '*12}{item.name} : \n {' '*20}{line.amount} штук по {item.price_per_unit}руб"
         sum += item.price_per_unit*int(line.amount)
     return (purchases, sum)

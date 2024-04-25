@@ -17,7 +17,10 @@ class ItemDAO:
     currency : str
     avaible : int = 0
     
-    def __init__(self, id : str , group_name : str, name : str, description : str, manufacturer_name : str, image : str, price_per_unit : int, units : str, currency : str, avaible : int) -> None:
+    def __init__(self, id : str , group_name : str, name : str, 
+                 description : str, manufacturer_name : str, image : str, 
+                 price_per_unit : int, units : str, currency : str, 
+                 avaible : int) -> None:
         self.id = id
         self.group_name = group_name
         self.name = name
@@ -29,8 +32,11 @@ class ItemDAO:
         self.currency = currency
         self.avaible = avaible
         
-    def values_as_tuple(self) -> tuple[str, str, str, str, str, int, Decimal, str, str, int]:
-        return (self.id, self.name, self.description, self.group_name, self.manufacturer_name, self.image, self.price_per_unit, self.units, self.currency, self.avaible)
+    def values_as_tuple(self) -> tuple[str, str, str, str, str, 
+                                        int, Decimal, str, str, int]:
+        return (self.id, self.name, self.description, self.group_name, 
+                self.manufacturer_name, self.image, self.price_per_unit, 
+                self.units, self.currency, self.avaible)
     
     def price_str(self) -> str:
         return str(self.price_per_unit) + ' за ' + self.units
@@ -78,7 +84,10 @@ class OrderDAO:
     status : str
     creating_time : datetime
 
-    def __init__(self, id : int = 0, user_id : int = 0, address_id : int = 0, total_sum : Decimal = 0, payment_method : str = '', status : str = 'created', creating_time : datetime = datetime.now()):
+    def __init__(self, id : int = 0, user_id : int = 0, address_id : int = 0, 
+                 total_sum : Decimal = 0, payment_method : str = '', 
+                 status : str = 'created', creating_time : datetime = 
+                 datetime.now()):
         self.id = id
         self.user_id = user_id
         self.address_id = address_id
@@ -88,7 +97,8 @@ class OrderDAO:
         self.creating_time = creating_time
 
     def values_as_tuple(self) -> tuple[int, int, Decimal, str, str, datetime]:
-        return (self.user_id, self.address_id, self.total_sum, self.payment_method, self.status, self.creating_time)
+        return (self.user_id, self.address_id, self.total_sum, 
+                self.payment_method, self.status, self.creating_time)
     
 @dataclass
 class AddressDAO:
@@ -116,6 +126,8 @@ class AddressDAO:
         self.visible= visible
 
     def values_as_tuple(self) ->tuple[int,int,str,str,str,str,str,str,str]:
-        return (self.id, self.user_id, self.index, self.country, self.city, self.street, self.house, self.building, self.office)
+        return (self.id, self.user_id, self.index, self.country, self.city, 
+                self.street, self.house, self.building, self.office)
     def to_string(self) ->str:
-        return ', '.join([self.index, self.country , self.city , self.street , self.house , self.building , self.office])
+        return ', '.join([self.index, self.country , self.city , self.street , 
+                          self.house , self.building , self.office])

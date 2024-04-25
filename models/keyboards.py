@@ -1,9 +1,11 @@
-from aiogram.types import ReplyKeyboardMarkup,InlineKeyboardMarkup, KeyboardButton, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup,InlineKeyboardMarkup, \
+      KeyboardButton, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 import decimal
 
-from models.callback_factory import AddressCallbackFactory, ItemCallbackFactory, CartCallbackFactory, CategoryCallbackFactory
-from models.db import items_tab
+from models.callback_factory import AddressCallbackFactory, \
+      ItemCallbackFactory, CartCallbackFactory, CategoryCallbackFactory
+from models.db import items
 from models.dao import CartItemDAO, AddressDAO
 from models.seo_texts import contactus_url, contactus_text
 
@@ -20,19 +22,32 @@ class AddressKeyboards:
         return builder.as_markup(resize_keyboard=True)
 
     @staticmethod
-    def list_addresses(addresses : list[AddressDAO], remove : bool = False) -> InlineKeyboardMarkup:
+    def list_addresses(addresses : list[AddressDAO], 
+                       remove : bool = False) -> InlineKeyboardMarkup:
 
         builder = InlineKeyboardBuilder()
         for i, address in enumerate(addresses):
-            builder.button(text= address.to_string(), callback_data=AddressCallbackFactory(action='address', address_index=i, address_id=address.id))   
+            builder.button(text= address.to_string(), callback_data=
+                           AddressCallbackFactory(action='address', 
+                                                    address_index=i, 
+                                                    address_id=address.id))   
         
         if remove == True:
-            builder.button(text='Отмена', callback_data=AddressCallbackFactory(action='cancel', address_index=None, address_id=None))
+            builder.button(text='Отмена', callback_data=
+                           AddressCallbackFactory(action='cancel', 
+                                                    address_index=None, 
+                                                    address_id=None))
             builder.adjust(1)
             return builder.as_markup()
-        builder.button(text='Добавить', callback_data=AddressCallbackFactory(action='add', address_index=None, address_id=None))
+        builder.button(text='Добавить', callback_data=
+                       AddressCallbackFactory(action='add', 
+                                                address_index=None, 
+                                                address_id=None))
         if addresses != []:
-            builder.button(text='Удалить', callback_data=AddressCallbackFactory(action='remove', address_index=None, address_id=None))
+            builder.button(text='Удалить', callback_data=
+                           AddressCallbackFactory(action='remove',
+                                                    address_index=None, 
+                                                    address_id=None))
         builder.adjust(1)
 
         return builder.as_markup(resize_keyboard=False)
@@ -128,21 +143,34 @@ class CatalogKeyboards:
 class CartKeyboards:
 
     @staticmethod 
-    async def get_cart(cart : list[CartItemDAO], user_id : int) -> InlineKeyboardMarkup:
+    async def get_cart(cart : list[CartItemDAO], 
+                       user_id : int) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         if cart is None:
             return builder.as_markup()
 
         sum = decimal.Decimal(0)
         for line in cart:
-            item = await items_tab.get_by_id(line.item_id)
+            item = await items.get_by_id(line.item_id)
             t_price = item.price_per_unit * line.amount
-            builder.button(text=f'{item.name[:10]}... \n {line.amount}шт * {item.price_per_unit}руб = {t_price}руб', 
-                callback_data=CartCallbackFactory(action='info', user_id=user_id, item_id=item.id, amount=line.amount))
+            builder.button(
+                text=f'{item.name[:10]}... \n {line.amount}шт * {item.price_per_unit}руб = {t_price}руб', 
+                callback_data = 
+                    CartCallbackFactory(action='info', user_id=user_id,
+                                        item_id=item.id, amount=line.amount)
+            )
             sum += t_price
         
-        builder.button(text='Очистить Корзину', callback_data=CartCallbackFactory(action='clear', user_id=user_id, item_id=None, amount=None))
-        builder.button(text=f'Купить всё за {sum}руб', callback_data=CartCallbackFactory(action='buy', user_id=user_id, item_id=None, amount=None))
+        builder.button(
+            text='Очистить Корзину', 
+            callback_data=CartCallbackFactory(action='clear', user_id=user_id, 
+                                              item_id=None, amount=None)
+        )
+        builder.button(
+            text=f'Купить всё за {sum}руб', 
+            callback_data=CartCallbackFactory(action='buy', user_id=user_id, 
+                                              item_id=None, amount=None)
+        )
 
         builder.adjust(1)
 
@@ -150,17 +178,36 @@ class CartKeyboards:
 
 
     @staticmethod 
-    def show_item(amount : int, item_id : str, user_id : int) -> InlineKeyboardMarkup:
-        
+    def show_item(amount : int, item_id : str, 
+                  user_id : int) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         
-        builder.button(text="-1", callback_data=CartCallbackFactory(action='decr', user_id=user_id, amount=amount, item_id=item_id))
-        builder.button(text=str(amount), callback_data=CartCallbackFactory(action='none', user_id=user_id, amount=amount, item_id=item_id))
-        builder.button(text="+1", callback_data=CartCallbackFactory(action='incr', user_id=user_id, amount=amount, item_id=item_id))
-        
-        builder.button(text='Удалить из корзины', callback_data=CartCallbackFactory(action='delete', user_id=user_id, amount=amount, item_id=item_id))
+        builder.button(
+            text="-1", 
+            callback_data=CartCallbackFactory(action='decr', user_id=user_id, 
+                                              amount=amount, item_id=item_id)
+        )
+        builder.button(
+            text=str(amount), 
+            callback_data=CartCallbackFactory(action='none', user_id=user_id,
+                                              amount=amount, item_id=item_id)
+        )
+        builder.button(
+            text="+1", 
+            callback_data=CartCallbackFactory(action='incr', user_id=user_id,
+                                              amount=amount, item_id=item_id)
+        )
+        builder.button(
+            text='Удалить из корзины', 
+            callback_data=CartCallbackFactory(action='delete', user_id=user_id,
+                                              amount=amount, item_id=item_id)
+        )
         builder.adjust(3)
-        builder.button(text='Сохранить', callback_data=CartCallbackFactory(action='save', user_id=user_id, amount=amount, item_id=item_id))
+        builder.button(
+            text='Сохранить', 
+            callback_data=CartCallbackFactory(action='save', user_id=user_id,
+                                              amount=amount, item_id=item_id)
+        )
 
         return builder.as_markup(resize_keyboard=True)
 

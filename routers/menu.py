@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from models.keyboards import MenuKeyboards
-from models.db import images_tab
+from models.db import images
 from models.seo_texts import start_command, contactus_command
 from models.fsm import GiveIdState
 
@@ -14,7 +14,7 @@ router = Router()
 @router.message(Command(commands=["start"]))
 async def start(message : Message):
     m = await message.answer_photo(
-        photo= await images_tab.get_by_name('PhotoArtComplect'),
+        photo= await images.get_by_name('PhotoArtComplect'),
         caption=start_command, 
         reply_markup=MenuKeyboards.get_menu())
 
@@ -22,7 +22,7 @@ async def start(message : Message):
 async def contact_us_menu(message: Message):
     
     await message.answer_photo(
-        photo=await images_tab.get_by_name('PhotoArtComplect'),
+        photo=await images.get_by_name('PhotoArtComplect'),
         caption= contactus_command,
         reply_markup=MenuKeyboards.get_contacts())
 
@@ -44,6 +44,6 @@ async def save_image(message : Message, state : FSMContext):
 
 @router.message(GiveIdState.Recieve_image, F.photo)
 async def get_image_ig(message : Message, state : FSMContext):
-    await images_tab.add(file_id=message.photo[-1].file_id, file_name=message.caption)
+    await images.add(file_id=message.photo[-1].file_id, file_name=message.caption)
     await state.clear()
     await message.answer(text=f'Сохранил')

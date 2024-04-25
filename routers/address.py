@@ -5,7 +5,7 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from models.db import addresses_tab, images_tab
+from models.db import addresses, images
 from models.fsm import AddressState, PurchaseState
 from models.callback_factory import AddressCallbackFactory
 from models.keyboards import AddressKeyboards, MenuKeyboards
@@ -21,14 +21,14 @@ cities = ['Красноярск']
 async def address_menu(message : Message):
     
     #Check Address
-    addresses = await addresses_tab.get_by_user_id(message.from_user.id)
+    addresses = await addresses.get_by_user_id(message.from_user.id)
     if addresses == []:
         caption = 'Здесь пока ничего нет'
     else:
         caption = 'Ваши адреса:'
 
     #answer
-    await message.answer_photo( photo=await images_tab.get_by_name('PhotoArtComplect'),
+    await message.answer_photo( photo=await images.get_by_name('PhotoArtComplect'),
         caption=caption,
         reply_markup=AddressKeyboards.list_addresses(addresses))
 
@@ -42,14 +42,14 @@ async def chosen_address_to_delete(call : CallbackQuery, callback_data : Address
     match callback_data.action:
         
         case 'address':
-            addresses = await addresses_tab.get_by_user_id(call.from_user.id)
+            addresses = await addresses.get_by_user_id(call.from_user.id)
             address = addresses[callback_data.address_index]
-            await addresses_tab.delete_by_id(address.id)
+            await addresses.delete_by_id(address.id)
 
         case _:
             pass
     
-    result_addresses = await addresses_tab.get_by_user_id(call.from_user.id)
+    result_addresses = await addresses.get_by_user_id(call.from_user.id)
 
     await call.message.edit_caption(
         caption= 'Здесь пока ничего нет' if result_addresses == [] else 'Ваши адреса:',
@@ -78,14 +78,14 @@ async def will_to_change_address(call : CallbackQuery, callback_data : AddressCa
         case 'remove':
             await state.set_state(AddressState.delete_address)
             await call.message.edit_caption(caption= 'Выберите адрес который хотите удалить',
-                reply_markup=AddressKeyboards.list_addresses(await addresses_tab.get_by_user_id(call.from_user.id), 
+                reply_markup=AddressKeyboards.list_addresses(await addresses.get_by_user_id(call.from_user.id), 
                 remove=True))
 
         case 'add':
             await state.set_state(AddressState.choose_city)
             await call.message.answer('''Выберите город:''', reply_markup=AddressKeyboards.list_cities(cities))
             #await call.message.edit_reply_markup(
-            #    reply_markup=addresses_keyboard(await addresses_tab.get_addresses_by_user_id(call.from_user.id)))
+            #    reply_markup=addresses_keyboard(await addresses.get_addresses_by_user_id(call.from_user.id)))
     await call.answer()
 
 
@@ -126,7 +126,7 @@ async def add_office(message : Message, state : FSMContext):
 @router.message(AddressState.choose_index)
 async def add_street(message : Message, state : FSMContext):
     data = (await state.get_data())
-    await addresses_tab.add(
+    await addresses.add(
         user_id=message.from_user.id,
         index= message.text,
         country='РФ',
@@ -137,14 +137,14 @@ async def add_street(message : Message, state : FSMContext):
         office=data['office']
     )
     await message.answer('Заверешено', reply_markup=MenuKeyboards.get_menu())
-    addresses = await addresses_tab.get_by_user_id(message.from_user.id)
+    addresses = await addresses.get_by_user_id(message.from_user.id)
     if addresses == []:
         caption = 'Здесь пока ничего нет'
     else:
         caption = 'Ваши адреса:'
 
     #answer
-    await message.answer_photo( photo=await images_tab.get_by_name('PhotoArtComplect'),
+    await message.answer_photo( photo=await images.get_by_name('PhotoArtComplect'),
         caption=caption,
         reply_markup=AddressKeyboards.list_addresses(addresses))
 

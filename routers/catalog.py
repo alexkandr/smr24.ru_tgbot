@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 
 from models.callback_factory import ItemCallbackFactory, CategoryCallbackFactory
 from models.keyboards import CatalogKeyboards
-from models.db import images_tab, items_tab, cart_tab
+from models.db import images, items, carts
 from models.seo_texts import search_text
 
 router = Router()
@@ -14,13 +14,13 @@ router = Router()
 @router.message(F.text=='Каталог')
 @router.message(Command(commands=['catalog']))
 async def catalog_que(message : Message):
-    await message.answer_photo(photo=await images_tab.get_by_name('PhotoArtComplect'),
-        reply_markup=CatalogKeyboards.list_categories(await items_tab.get_categories(page = 1), category_dict= items_tab.groups_dict,page=1) )
+    await message.answer_photo(photo=await images.get_by_name('PhotoArtComplect'),
+        reply_markup=CatalogKeyboards.list_categories(await items.get_categories(page = 1), category_dict= items.groups_dict,page=1) )
 
 @router.callback_query(CategoryCallbackFactory.filter())
 async def show_catalog(call : CallbackQuery, callback_data : CategoryCallbackFactory):
     if callback_data.manufacturer is not None:
-        showing_data = await items_tab.get_by_cat_man(items_tab.groups_dict[int(callback_data.c)], callback_data.manufacturer)
+        showing_data = await items.get_by_cat_man(items.groups_dict[int(callback_data.c)], callback_data.manufacturer)
         #Check for empty
         if showing_data == []:
             await call.message.answer(text='Здесь пока ничего нет')
@@ -35,21 +35,21 @@ async def show_catalog(call : CallbackQuery, callback_data : CategoryCallbackFac
     
     if callback_data.c.startswith('+'):
         nextpage = int(callback_data.c[1:]) + 1
-        await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories (await items_tab.get_categories(page = nextpage),category_dict= items_tab.groups_dict, page=nextpage))
+        await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories (await items.get_categories(page = nextpage),category_dict= items.groups_dict, page=nextpage))
         await call.answer()
         return
     if callback_data.c.startswith('-'):
         nextpage = int(callback_data.c[1:]) - 1
-        await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories (await items_tab.get_categories(page = nextpage),category_dict= items_tab.groups_dict, page=nextpage))
+        await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories (await items.get_categories(page = nextpage),category_dict= items.groups_dict, page=nextpage))
         await call.answer()
         return
     
     if callback_data.c.startswith('back'):
-        await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories(await items_tab.get_categories(page = 1), category_dict= items_tab.groups_dict,page=1))
+        await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories(await items.get_categories(page = 1), category_dict= items.groups_dict,page=1))
         await call.answer()
         return
         
-    manufacturers = await items_tab.get_manufacturers_by_category(items_tab.groups_dict[int(callback_data.c)])
+    manufacturers = await items.get_manufacturers_by_category(items.groups_dict[int(callback_data.c)])
     await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_manufacturers(manufacturers=manufacturers, category=callback_data.c))
     await call.answer()
     
@@ -73,7 +73,7 @@ async def callback_catalog(call : CallbackQuery, callback_data : ItemCallbackFac
             pass
         case 'to_cart':
             await update_item_markup(call.message, 0, callback_data.item_id)
-            await cart_tab.add_to_cart(user_id=call.from_user.id, item_id=callback_data.item_id, amount= callback_data.amount)
+            await carts.add_to_cart(user_id=call.from_user.id, item_id=callback_data.item_id, amount= callback_data.amount)
             await call.answer(text=f'в корзину добавлено {callback_data.amount} штук', show_alert=True)
             return
     await call.answer()
