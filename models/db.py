@@ -12,27 +12,29 @@ from aiogram.types import FSInputFile
 load_dotenv()
 DATABASE = getenv('DATABASE')
 ADMIN = getenv('ADMIN_CHAT_ID')
+logger = logging.getLogger(__name__)
 
 class DataBase:
     pool = None
 
     async def connect(self):
-        self.pool = psycopg_pool.AsyncConnectionPool(conninfo=DATABASE, min_size=4,
-                                                      open = True)
+        logger.info('Establishong database connection')
+        self.pool = psycopg_pool.AsyncConnectionPool(conninfo=DATABASE, min_size=4)
+        logger.info('db connected')
         await self.pool.open()
-        logging.info('db connected')
+        logger.info('pool opened')
     
         
     async def execute(self, command: str, factory = None, fetch: bool = False ):
         pre_log_info = "Query to DATABASE:"
         for i in command.split('\n'):
             pre_log_info += ('\n\t' + i)
-        logging.info(pre_log_info)
+        logger.info(pre_log_info)
         
         async with self.pool.connection() as conn:
-            logging.info('connection created')
+            logger.info('connection created')
             async with conn.cursor(row_factory=factory) as cursor:
-                logging.info('cursor created')
+                logger.info('cursor created')
                 await cursor.execute(command)
                 result = None
                 if fetch == True:
@@ -45,7 +47,7 @@ class DataBase:
                         post_log_info = f'1 {type(result)} result: \n {result}'
 
                     post_log_info = 'Query returned ' + post_log_info
-                    logging.info(post_log_info)
+                    logger.info(post_log_info)
 
 
                 return result
@@ -67,9 +69,6 @@ class ItemsTable:
         7: "Пропитки, добавки, пластификаторы",
         8: "Шпаклевка",
     }
-
-    async def connect(self):
-        self.conn = await psycopg.AsyncConnection.connect(DATABASE, autocommit=True)
 
     async def get_categories(self, page : int) -> list[str]:
         categories = range(0,9)
