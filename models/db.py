@@ -114,6 +114,12 @@ class ItemsTable:
                                   fetch=True)
         return result    
     
+    async def get_manufacturers_by_category(self, category : str) -> list[str]:
+        query = f"select distinct manufacturer_name from items where group_name = '{category}'"
+        result = await db.execute(command=query,
+                                  fetch=True)
+        return [r[0] for r in result]
+
     async def get_by_category(self, category : str) -> list[ItemDAO]:
         query = f"select * from items where group_name = '{category}'"
         
