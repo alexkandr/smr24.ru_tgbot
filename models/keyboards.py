@@ -259,7 +259,7 @@ class OrdersKeyboards:
         builder = InlineKeyboardBuilder()
         builder.button(
             text=f"В заказ добавлено {amount} штук", 
-            callback_data=OrderCallbackFactory(action='none', order_id=order_id,
+            callback_data=OrderCallbackFactory(action='sum', order_id=order_id,
                                               amount=None, item_id=None)
         )
     

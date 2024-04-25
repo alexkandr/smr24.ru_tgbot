@@ -50,6 +50,9 @@ async def chosen_address_to_delete(call : CallbackQuery, callback_data : OrderCa
             await call.answer('Заказ восстановлен', show_alert=True)
             await list_orders(call.message, call.from_user.id)
         case 'info':
+            #todo: callbackfactory не вмещает одновременно order_id и item_id. 
+            #поэтому при переходе на страницу товара нет возможности вернуться 
+            #на тот же самый заказ
             item = await items.get_by_id(callback_data.item_id)
             await call.message.edit_text(text=item.message_info(),
                                             reply_markup=OrdersKeyboards.show_item(amount=callback_data.amount, order_id=callback_data.order_id))
@@ -60,6 +63,8 @@ async def chosen_address_to_delete(call : CallbackQuery, callback_data : OrderCa
             orderitems = await ordered_items.get_by_order_id(order.id)
             await call.message.edit_text(text=order.long_info(address.to_string()),
                                             reply_markup= await OrdersKeyboards.get_order(orderitems, order))
+        case 'sum':
+            await call.answer()
 
 
     
