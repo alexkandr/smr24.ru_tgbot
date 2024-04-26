@@ -7,7 +7,6 @@ from models.dao import ItemDAO, OrderDAO, OrderItemDAO, CartItemDAO, AddressDAO
 import psycopg_pool
 from psycopg.rows import class_row, dict_row
 from dotenv import load_dotenv
-from aiogram.types import FSInputFile
 
 load_dotenv()
 DATABASE = getenv('DATABASE')
@@ -30,7 +29,7 @@ class DataBase:
     None
         """
         self.logger.info('Establishing database connection')
-        self.pool = psycopg_pool.AsyncConnectionPool(conninfo=conninfo, min_size=4, max_size=10, max_waiting=10, max_lifetime=10)
+        self.pool = psycopg_pool.AsyncNullConnectionPool(conninfo=conninfo)
         self.logger.info('db connected')
         await self.pool.open()
         await self.pool.wait()
@@ -59,7 +58,7 @@ None if fetch == False, else list of results. List of tuples if factory is None
 
         async with self.pool.connection() as conn:
             self.logger.info(f'connection created \n Currently avaible {self.pool.get_stats()["pool_available"]} connections')
-            
+
             async with conn.cursor(row_factory=factory) as cursor:
                 await cursor.execute(command)
                 result = None
@@ -86,7 +85,7 @@ class ItemsTable:
         2: "Клеящий состав",
         3: "Затирка",
         4: "Шпаклевка",
-        5: "Штукатурка",
+        5: "Штукатурка ",
         6: "Грунт",
         7: "Пропитки, добавки, пластификаторы",
         8: "Лакокрасочные материалы",
@@ -270,11 +269,11 @@ class CartsTable:
         
         que1 = "select amount from carts where user_id = %s and \
                     item_id = '%s'"%(user_id, item_id)
-        current_amnt = await db.execute(que1, factory=class_row(CartItemDAO), 
-                                        fetch=True)
-        if current_amnt:
+        current_amnt = (await db.execute(que1, 
+                                        fetch=True))
+        if current_amnt != []:
             que2 = "update carts set amount = %s where user_id = %s and \
-                    item_id = '%s'"%(amount + current_amnt, user_id, item_id)
+                    item_id = '%s'"%(amount + current_amnt[0][0], user_id, item_id)
             await db.execute(que2)
         else:
             que3= "insert into carts(user_id, item_id, amount) \

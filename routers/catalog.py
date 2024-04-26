@@ -36,11 +36,13 @@ async def show_catalog(call : CallbackQuery, callback_data : CategoryCallbackFac
     
     if callback_data.c.startswith('+'):
         nextpage = int(callback_data.c[1:]) + 1
+        nextpage = nextpage if nextpage<4 else 1
         await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories (await items.get_categories(page = nextpage),category_dict= items.groups_dict, page=nextpage))
         await call.answer()
         return
     if callback_data.c.startswith('-'):
         nextpage = int(callback_data.c[1:]) - 1
+        nextpage = nextpage if nextpage>0 else 3
         await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_categories (await items.get_categories(page = nextpage),category_dict= items.groups_dict, page=nextpage))
         await call.answer()
         return
