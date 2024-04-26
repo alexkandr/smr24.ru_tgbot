@@ -30,7 +30,7 @@ class DataBase:
     None
         """
         self.logger.info('Establishing database connection')
-        self.pool = psycopg_pool.AsyncConnectionPool(conninfo=conninfo, min_size=4, max_size=10, max_waiting=5)
+        self.pool = psycopg_pool.AsyncConnectionPool(conninfo=conninfo, min_size=4, max_size=10, max_waiting=10, max_lifetime=10)
         self.logger.info('db connected')
         await self.pool.open()
         await self.pool.wait()
@@ -73,8 +73,7 @@ None if fetch == False, else list of results. List of tuples if factory is None
 
                     post_log_info = 'Query returned ' + post_log_info
                     self.logger.info(post_log_info)
-
-
+        
         return result
     
     async def close(self):

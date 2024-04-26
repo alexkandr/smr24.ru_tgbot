@@ -30,8 +30,9 @@ async def show_catalog(call : CallbackQuery, callback_data : CategoryCallbackFac
         for item in showing_data:
             await call.message.answer_photo(photo= item.image, caption=(item.message_info()),
             reply_markup= CatalogKeyboards.show_item(0, item.id))
-
+         
         await call.answer()
+        return
     
     if callback_data.c.startswith('+'):
         nextpage = int(callback_data.c[1:]) + 1
