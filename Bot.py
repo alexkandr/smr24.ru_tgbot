@@ -4,8 +4,12 @@ import logging
 import pathlib
 
 rel_path = pathlib.Path(__file__).parent.resolve()
+with open(rel_path.joinpath('./logs/number.log'), 'r+') as n:
+    curr = int(n.read())
+    n.seek(0, 0)
+    n.write(str(curr+1))
 logging.basicConfig(level=logging.INFO, 
-                    filename=str(rel_path.joinpath("./logs/logs.log")),
+                    filename=str(rel_path.joinpath(f"./logs/logs{curr}.log")),
                     filemode="w",
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s", force=True)
 
