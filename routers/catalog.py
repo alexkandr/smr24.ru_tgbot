@@ -21,15 +21,14 @@ async def catalog_que(message : Message):
 async def show_catalog(call : CallbackQuery, callback_data : CategoryCallbackFactory):
     if callback_data.manufacturer is not None:
         showing_data = await items.get_by_cat_man(items.groups_dict[int(callback_data.c)], callback_data.manufacturer, page=1)
-        #Check for empty
-        if showing_data == []:
-            await call.message.answer(text='Здесь пока ничего нет')
-            await call.answer()
-            return
+
         #Show items
-        await call.message.answer(text = 
-                                  f'''Категория : {items.groups_dict[int(callback_data.c)]}
-Производитель : {callback_data.manufacturer}''', reply_markup=CatalogKeyboards.list_items(showing_data, page=1))
+        text = f'''Категория : {items.groups_dict[int(callback_data.c)]}
+Производитель : {callback_data.manufacturer}
+
+⬇️⬇️⬇️'''
+        await call.message.answer(text = text
+                                  , reply_markup=CatalogKeyboards.list_items(showing_data, page=1))
          
         await call.answer()
         return
