@@ -35,6 +35,12 @@ async def cmd_cancel(message: Message, state: FSMContext):
         reply_markup=MenuKeyboards.get_menu()
     )
 
+async def return_to_menu(message: Message):
+    await message.answer_photo(
+        photo= await images.get_by_name('PhotoArtComplect'),
+        caption=start_command, 
+        reply_markup=MenuKeyboards.get_menu())
+
 #save new image to db
 
 @router.message(Command(commands=['save_image']))

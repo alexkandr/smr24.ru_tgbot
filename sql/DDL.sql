@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS images(
 
 CREATE TABLE IF NOT EXISTS addresses(    
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id DOUBLE PRECISION NOT NULL,
     index VARCHAR(6), 
     country VARCHAR(255),
     city VARCHAR(255), 
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS items(
     visible BOOLEAN
 );
 CREATE Table IF NOT EXISTS carts(
-    user_id INTEGER,
+    user_id DOUBLE PRECISION,
     item_id VARCHAR(255) REFERENCES items(id), 
     amount INTEGER
 );
@@ -50,7 +50,7 @@ ALTER TABLE carts ADD CONSTRAINT CartItemsUnique UNIQUE(user_id, item_id);
 
 CREATE TABLE IF NOT EXISTS orders (
     id VARCHAR(25) PRIMARY KEY,
-    user_id INTEGER,
+    user_id DOUBLE PRECISION,
     address_id INTEGER REFERENCES addresses(id),
     total_sum NUMERIC,
     payment_method VARCHAR(50),

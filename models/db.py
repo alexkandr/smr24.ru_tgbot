@@ -115,11 +115,13 @@ class ItemsTable:
                                   fetch=True)
         return [r[0] for r in result]
     
-    async def get_by_cat_man(self, category : str, manufacturer:str) -> list[ItemDAO]:
+    async def get_by_cat_man(self, category : str, manufacturer:str, page : int) -> list[ItemDAO]:
+        per_page = 7
+        offset = (page-1)*per_page
         if manufacturer == 'other':
             query = f"select * from items where group_name = '{category}' and manufacturer_name is null"
         else:
-            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}'"
+            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' limit {per_page} offset {offset}"
         
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
