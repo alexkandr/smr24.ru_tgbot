@@ -4,8 +4,12 @@ import logging
 import pathlib
 
 rel_path = pathlib.Path(__file__).parent.resolve()
+with open(rel_path.joinpath('./logs/number.log'), 'r+') as n:
+    curr = int(n.read())
+    n.seek(0, 0)
+    n.write(str(curr+1))
 logging.basicConfig(level=logging.INFO, 
-                    filename=str(rel_path.joinpath("./logs/logs.log")),
+                    filename=str(rel_path.joinpath(f"./logs/logs{curr}.log")),
                     filemode="w",
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s", force=True)
 
@@ -14,8 +18,7 @@ from aiogram import Dispatcher, Bot
 from aiogram.fsm.strategy import FSMStrategy
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from routers import menu, catalog, cart, address, purchase, search
-from models.db import images_tab
+from routers import menu, catalog, cart, address, purchase, search, order
 
 load_dotenv()
 TOKEN =  getenv('BOT_TOKEN')
@@ -32,13 +35,13 @@ async def main():
     except:
         logger.error('couldnt connect to telegram api')
     logger.info('Bot started')
-    #await images_tab.upload_(bot)
     dp.include_router(menu.router)
     dp.include_router(catalog.router)
     dp.include_router(cart.router)
     dp.include_router(address.router)
     dp.include_router(purchase.router)
     dp.include_router(search.router)
+    dp.include_router(order.router)
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 

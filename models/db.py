@@ -1,73 +1,94 @@
 from os import getenv
 import asyncio
 import logging
+from datetime import datetime
 from models.dao import ItemDAO, OrderDAO, OrderItemDAO, CartItemDAO, AddressDAO
 
-import psycopg
 import psycopg_pool
 from psycopg.rows import class_row, dict_row
 from dotenv import load_dotenv
-from aiogram.types import FSInputFile
 
 load_dotenv()
 DATABASE = getenv('DATABASE')
-ADMIN = getenv('ADMIN_CHAT_ID')
-logger = logging.getLogger(__name__)
 
 class DataBase:
-    pool = None
 
-    async def connect(self):
-        logger.info('Establishong database connection')
-        self.pool = psycopg_pool.AsyncConnectionPool(conninfo=DATABASE, min_size=4)
-        logger.info('db connected')
+    def __init__(self, logger_name = __name__) -> None:
+        self.logger = logging.getLogger(logger_name)
+
+    async def connect(self, conninfo = DATABASE):
+        """
+    establishes connection to db
+    
+    Parameters
+    ----------
+    conninfo : connection string
+    
+    Returns
+    ------- 
+    None
+        """
+        self.logger.info('Establishing database connection')
+        self.pool = psycopg_pool.AsyncNullConnectionPool(conninfo=conninfo)
+        self.logger.info('db connected')
         await self.pool.open()
-        logger.info('pool opened')
+        await self.pool.wait()
+        self.logger.info('pool opened')
     
         
     async def execute(self, command: str, factory = None, fetch: bool = False ):
+        """
+executes command to connected db
+
+Parameters
+----------
+command : query to db
+factory : row_factory for cursor
+fetch : true if execution should return result of quer
+
+Returns
+------- 
+None if fetch == False, else list of results. List of tuples if factory is None
+        """
         pre_log_info = "Query to DATABASE:"
         for i in command.split('\n'):
             pre_log_info += ('\n\t' + i)
-        logger.info(pre_log_info)
+        self.logger.info(pre_log_info)
         
+
         async with self.pool.connection() as conn:
-            logger.info('connection created')
+            self.logger.info(f'connection created \n Currently avaible {self.pool.get_stats()["pool_available"]} connections')
+
             async with conn.cursor(row_factory=factory) as cursor:
-                logger.info('cursor created')
                 await cursor.execute(command)
                 result = None
                 if fetch == True:
                     result = await cursor.fetchall() 
-                    if result is None:
-                        post_log_info ='None results'
-                    elif type(result) == list:
-                        post_log_info = str(len(result)) + 'results'
+                    res_len=len(result)
+                    if res_len !=1 :
+                        post_log_info = f'list of {res_len} {type(result[0]) if res_len != 0 else "None"}'
                     else:
-                        post_log_info = f'1 {type(result)} result: \n {result}'
+                        post_log_info = f'1 {type(result[0])} result: \n {result}'
 
                     post_log_info = 'Query returned ' + post_log_info
-                    logger.info(post_log_info)
-
-
-                return result
+                    self.logger.info(post_log_info)
+        
+        return result
     
     async def close(self):
         await self.pool.close()
-
-db = DataBase()
 
 class ItemsTable:
     groups_dict = {
         0: "Ремонтные составы",
         1: "Смеси для пола",
         2: "Клеящий состав",
-        3: "Штукатурка ",
-        4: "Лакокрасочные материалы",
-        5: "Затирка",
+        3: "Затирка",
+        4: "Шпаклевка",
+        5: "Штукатурка ",
         6: "Грунт",
         7: "Пропитки, добавки, пластификаторы",
-        8: "Шпаклевка",
+        8: "Лакокрасочные материалы",
     }
 
     async def get_categories(self, page : int) -> list[str]:
@@ -87,41 +108,38 @@ class ItemsTable:
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
         return result    
-    async def get_by_category(self, category : str) -> list[ItemDAO]:
-        query = f"select * from items where group_name = '{category}'"
-        log_query(query)
-        async with self.conn.cursor(row_factory=class_row(ItemDAO)) as cur:
-            await cur.execute(query)
-            result = await cur.fetchall()
-            log_query_result(result)
-            return result
-    async def get_by_cat_man(self, category : str, manufacturer:str) -> list[ItemDAO]:
-        if manufacturer == 'other':
-            query = f"select * from items where group_name = '{category}' and manufacturer_name is null"
-        else:
-            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}'"
-        log_query(query)
-        async with self.conn.cursor(row_factory=class_row(ItemDAO)) as cur:
-            await cur.execute(query)
-            result = await cur.fetchall()
-            log_query_result(result)
-            return result
     
     async def get_manufacturers_by_category(self, category : str) -> list[str]:
         query = f"select distinct manufacturer_name from items where group_name = '{category}'"
-        log_query(query)
-        async with self.conn.cursor() as cur:
-            await cur.execute(query)
-            result = [i[0] for i in await cur.fetchall()]
-            log_query_result(result)
-            return result
+        result = await db.execute(command=query,
+                                  fetch=True)
+        return [r[0] for r in result]
+    
+    async def get_by_cat_man(self, category : str, manufacturer:str, page : int) -> list[ItemDAO]:
+        per_page = 7
+        offset = (page-1)*per_page
+        if manufacturer == 'other':
+            query = f"select * from items where group_name = '{category}' and manufacturer_name is null"
+        else:
+            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' limit {per_page} offset {offset}"
+        
+        result = await db.execute(command=query, factory=class_row(ItemDAO),
+                                  fetch=True)
+        return result    
 
+    async def get_by_category(self, category : str) -> list[ItemDAO]:
+        query = f"select * from items where group_name = '{category}'"
+        
+        result = await db.execute(command=query, factory=class_row(ItemDAO),
+                                  fetch=True)
+        return result
+    
     async def get_by_id(self, item_id : int) -> ItemDAO:
         query = f"select * from items where id = '{item_id}'"
         
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
-        return result
+        return result[0]
     
     async def get_names(self) -> list[dict]:
         return
@@ -137,8 +155,11 @@ class ItemsTable:
 
 class AddressesTable:
 
-    async def get_by_user_id(self, user_id : int) -> list[class_row]:
-        query = f'select * from addresses where user_id = {user_id}'
+    async def get_by_user_id(self, user_id : int, visible_only :bool = True) -> list[class_row]:
+        if visible_only:
+            query = f'select * from addresses where user_id = {user_id} and visible = True'
+        else:
+            query = f'select * from addresses where user_id = {user_id}'
         
         result = await db.execute(command=query, factory=class_row(AddressDAO),
                                   fetch=True)
@@ -149,38 +170,62 @@ class AddressesTable:
         
         result = await db.execute(command=query, factory=class_row(AddressDAO),
                                   fetch=True)
-        return result
+        return result[0]
 
     async def delete_by_user_id(self, user_id : int):
-        query = f'delete from addresses where user_id = {user_id}'
+        query = f'update addresses set visible = false where user_id = {user_id}'
         
         await db.execute(command=query, fetch=True)
 
     async def delete_by_id(self, id : int):
-        query = f'delete from addresses where id = {id}'
+        query = f'update addresses set visible = false where id = {id}'
         
         await db.execute(command=query, fetch=False)
 
     async def add(self,user_id :int = 0,index : str = '',country : str = '',
                   city : str = '',street : str = '',house : str = '',
-                  building : str = '',office : str = ''):
+                  building : str = '',office : str = '', visible=True):
         
         query = \
         f"insert into addresses (user_id, index, country, city, street, \
-        house, building, office) values({user_id}, '{index}', '{country}', \
-        '{city}', '{street}', '{house}', '{building}', '{office}')" 
+        house, building, office, visible) values({user_id}, '{index}', '{country}', \
+        '{city}', '{street}', '{house}', '{building}', '{office}', '{visible}')" 
         
         await db.execute(command=query, fetch=False)
             
 class OrdersTable:
 
-    async def add(self, order : OrderDAO) -> int:
-        return
+    async def add(self, order : OrderDAO) -> str:
+        order.id = 'b_' + str(abs(hash(datetime.now())))
+        order.creating_time = datetime.now()
+        values = list(order.values_as_tuple())
+        
+        query = "insert into orders (id, user_id, address_id, total_sum, \
+            payment_method, status, payment_status, creating_time) values \
+                ('{}', {}, {}, {}, '{}', '{}', '{}', '{}')".format(order.id, *values)
+        
+        await db.execute(query, fetch=False)
+        return order.id
         
     async def get_all(self, status : str = '') -> list[OrderDAO]:
-        return
+        if status == '':
+            query = 'select * from orders'
+        else:
+            query = f"select * from orders where status = '{status}'"
+        return (await db.execute(query, class_row(OrderDAO), fetch=True))
         
-
+    async def get_by_user_id(self, user_id : str = '', status='') -> list[OrderDAO]:
+        query = f"select * from orders where user_id = {user_id}" 
+        return (await db.execute(query, class_row(OrderDAO), fetch=True))
+    
+    async def get_by_id(self, order_id : str = '', status='') -> OrderDAO:
+        query = f"select * from orders where id = '{order_id}'" 
+        return (await db.execute(query, class_row(OrderDAO), fetch=True))[0]
+    
+    async def update_status(self, order_id : str = '', status='', payment_status :str = '') -> OrderDAO:
+        query = f"update orders set status = '{status}', payment_status = '{payment_status}' where id = '{order_id}'" 
+        await db.execute(query)
+    
 class ImagesTable:
 
     async def add(self, file_id : str, file_name : str) -> None:
@@ -203,17 +248,21 @@ class ImagesTable:
     async def get_by_name(self, file_name : str) -> str:
         query = f"select file_id from images where file_name = '{file_name}' "
         
-        result = (await db.execute(query, fetch=True))[0]
+        result = (await db.execute(query, fetch=True))[0][0]
         return result
         
 
 class OrderedItemsTable:
-        
-    async def add_cart(self, cart : list[OrderItemDAO], order_id : int) -> None:
-        return
+         
+    async def add_item(self, item_id : str, order_id: str, amount :float) -> None:
+        query=f"insert into ordered_items (item_id, order_id, amount) values\
+            ('{item_id}', '{order_id}', {amount})"
+        await db.execute(query, fetch=False)
         
     async def get_by_order_id(self, order_id : int) -> list[OrderItemDAO]:
-        return
+        query = f"select * from ordered_items where order_id = '{order_id}'"
+        result = await db.execute(query, class_row(OrderItemDAO), fetch=True)
+        return result
         
 class CartsTable:
 
@@ -222,11 +271,11 @@ class CartsTable:
         
         que1 = "select amount from carts where user_id = %s and \
                     item_id = '%s'"%(user_id, item_id)
-        current_amnt = await db.execute(que1, factory=class_row(CartItemDAO), 
-                                        fetch=True)
-        if current_amnt:
+        current_amnt = (await db.execute(que1, 
+                                        fetch=True))
+        if current_amnt != []:
             que2 = "update carts set amount = %s where user_id = %s and \
-                    item_id = '%s'"%(amount + current_amnt, user_id, item_id)
+                    item_id = '%s'"%(amount + current_amnt[0][0], user_id, item_id)
             await db.execute(que2)
         else:
             que3= "insert into carts(user_id, item_id, amount) \
@@ -268,7 +317,7 @@ class CartsTable:
         
         result = await db.execute(query, factory=class_row(CartItemDAO), 
                                   fetch=True)
-        return result[0]
+        return result[0][0]
 
     async def remove_item(self, user_id : int | str, 
                           item_id : int | str) -> list[CartItemDAO]:
@@ -287,15 +336,17 @@ class CartsTable:
         
 
         
+db = DataBase(logger_name='MainPgDB')
 async def connect():
+    logging.getLogger("psycopg.pool").setLevel(logging.INFO)
     await db.connect()
 
-items_tab = ItemsTable()
-orders_tab = OrdersTable()
-ordered_items_tab = OrderedItemsTable()
-images_tab = ImagesTable()
-addresses_tab = AddressesTable()
-cart_tab = CartsTable()
+items = ItemsTable()
+orders = OrdersTable()
+ordered_items = OrderedItemsTable()
+images = ImagesTable()
+addresses = AddressesTable()
+carts = CartsTable()
 
 asyncio.run(connect())
 

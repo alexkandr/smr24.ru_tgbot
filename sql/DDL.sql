@@ -17,14 +17,15 @@ CREATE TABLE IF NOT EXISTS images(
 
 CREATE TABLE IF NOT EXISTS addresses(    
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id DOUBLE PRECISION NOT NULL,
     index VARCHAR(6), 
     country VARCHAR(255),
     city VARCHAR(255), 
     street VARCHAR(255),
     house VARCHAR(255),
     building VARCHAR(255),
-    office VARCHAR(255)
+    office VARCHAR(255),
+    visible BOOLEAN
 );
 
 CREATE TABLE IF NOT EXISTS items(
@@ -37,11 +38,30 @@ CREATE TABLE IF NOT EXISTS items(
     price_per_unit NUMERIC,
     units VARCHAR(255),
     currency VARCHAR(3),
-    avaible INTEGER
+    avaible INTEGER,
+    visible BOOLEAN
 );
 CREATE Table IF NOT EXISTS carts(
-    user_id INTEGER,
+    user_id DOUBLE PRECISION,
     item_id VARCHAR(255) REFERENCES items(id), 
     amount INTEGER
 );
 ALTER TABLE carts ADD CONSTRAINT CartItemsUnique UNIQUE(user_id, item_id);
+
+CREATE TABLE IF NOT EXISTS orders (
+    id VARCHAR(25) PRIMARY KEY,
+    user_id DOUBLE PRECISION,
+    address_id INTEGER REFERENCES addresses(id),
+    total_sum NUMERIC,
+    payment_method VARCHAR(50),
+    status VARCHAR(50),
+    payment_status VARCHAR(50),
+    creating_time TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS ordered_items(
+    item_id VARCHAR(255) REFERENCES items(id),
+    order_id Varchar(25) REFERENCES orders(id),
+    amount INTEGER
+);
+ALTER TABLE ordered_items ADD CONSTRAINT OrderedItemsUnique UNIQUE(item_id, order_id);
