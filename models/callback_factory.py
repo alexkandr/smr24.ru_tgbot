@@ -28,6 +28,13 @@ class ItemsListCallbackFactory(CallbackData, prefix="ilist"):
     action : str
     item_id : Optional[str]
     page : Optional[int]
+    data_len : int
+
+class ItemsSearchCallbackFactory(CallbackData, prefix="slist"):
+    action : str
+    item_id : Optional[str]
+    page : Optional[int]
+    data_len : int
 
 class OrderCallbackFactory(CallbackData, prefix="order"):
     action : str

@@ -2,10 +2,11 @@ from aiogram.types import ReplyKeyboardMarkup,InlineKeyboardMarkup, \
       KeyboardButton, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 import decimal
+import math
 
 from models.callback_factory import AddressCallbackFactory, \
       ItemCallbackFactory, CartCallbackFactory, CategoryCallbackFactory, OrderCallbackFactory,\
-      ItemsListCallbackFactory
+      ItemsListCallbackFactory, ItemsSearchCallbackFactory
 from models.db import items
 from models.dao import CartItemDAO, AddressDAO, OrderItemDAO, OrderDAO, ItemDAO
 from models.seo_texts import contactus_url, contactus_text
@@ -127,19 +128,42 @@ class CatalogKeyboards:
         return InlineKeyboardMarkup(inline_keyboard=buttons)
     
     @staticmethod
-    def list_items(ilist : list[ItemDAO], page : int) -> InlineKeyboardMarkup: 
+    def list_items(ilist : list[ItemDAO], page : int, data_len : int) -> InlineKeyboardMarkup: 
+        per_page = 7
         buttons = []
         for i in ilist:
-            buttons.append([InlineKeyboardButton(text=i.name, callback_data= ItemsListCallbackFactory(action='show', item_id= i.id, page=page).pack())])
+            buttons.append([InlineKeyboardButton(text=i.name, callback_data= ItemsListCallbackFactory(action='show', item_id= i.id, page=page, data_len=data_len).pack())])
 
-        buttons.append(
+        if data_len > per_page:
+            total_pages = math.ceil(data_len/ per_page)
+            buttons.append(
             [
-                InlineKeyboardButton(text="<", callback_data=ItemsListCallbackFactory(action='<', page=page, item_id='').pack()),
-                InlineKeyboardButton(text=str(page), callback_data=ItemsListCallbackFactory(action='curr', page=page, item_id='').pack()),
-                InlineKeyboardButton(text=">", callback_data=ItemsListCallbackFactory(action='>', page=page, item_id='').pack())
+                InlineKeyboardButton(text="<", callback_data=ItemsListCallbackFactory(action='<', page=page, item_id='',data_len=data_len).pack()),
+                InlineKeyboardButton(text=f'{page}/{total_pages}', callback_data=ItemsListCallbackFactory(action='curr', page=page, item_id='',data_len=data_len).pack()),
+                InlineKeyboardButton(text=">", callback_data=ItemsListCallbackFactory(action='>', page=page, item_id='',data_len=data_len).pack())
             ]
             )
-        buttons.append([InlineKeyboardButton(text='❌ Убрать', callback_data= ItemsListCallbackFactory(action='delete', item_id='', page=page).pack())])
+        buttons.append([InlineKeyboardButton(text='❌ Убрать', callback_data= ItemsListCallbackFactory(action='delete', item_id='', page=page,data_len=data_len).pack())])
+
+        return InlineKeyboardMarkup(inline_keyboard=buttons)
+    
+    @staticmethod
+    def list_search_items(ilist : list[ItemDAO], page : int, data_len : int) -> InlineKeyboardMarkup: 
+        per_page = 7
+        buttons = []
+        for i in ilist:
+            buttons.append([InlineKeyboardButton(text=i.name, callback_data= ItemsSearchCallbackFactory(action='show', item_id= i.id, page=page, data_len=data_len).pack())])
+
+        if data_len > per_page:
+            total_pages = math.ceil(data_len/ per_page)
+            buttons.append(
+            [
+                InlineKeyboardButton(text="<", callback_data=ItemsSearchCallbackFactory(action='<', page=page, item_id='',data_len=data_len).pack()),
+                InlineKeyboardButton(text=f'{page}/{total_pages}', callback_data=ItemsSearchCallbackFactory(action='curr', page=page, item_id='',data_len=data_len).pack()),
+                InlineKeyboardButton(text=">", callback_data=ItemsSearchCallbackFactory(action='>', page=page, item_id='',data_len=data_len).pack())
+            ]
+            )
+        buttons.append([InlineKeyboardButton(text='❌ Убрать', callback_data= ItemsSearchCallbackFactory(action='delete', item_id='', page=page,data_len=data_len).pack())])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
     

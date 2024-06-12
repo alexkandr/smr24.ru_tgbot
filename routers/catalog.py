@@ -1,4 +1,5 @@
 # coding=utf-8
+import math
 from aiogram import Router, html, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
@@ -20,15 +21,14 @@ async def catalog_que(message : Message):
 @router.callback_query(CategoryCallbackFactory.filter())
 async def show_catalog(call : CallbackQuery, callback_data : CategoryCallbackFactory):
     if callback_data.manufacturer is not None:
-        showing_data = await items.get_by_cat_man(items.groups_dict[int(callback_data.c)], callback_data.manufacturer, page=1)
-
+        showing_data, data_len = await items.get_by_cat_man(items.groups_dict[int(callback_data.c)], callback_data.manufacturer, page=1)
         #Show items
         text = f'''Категория : {items.groups_dict[int(callback_data.c)]}
 Производитель : {callback_data.manufacturer}
 
-⬇️⬇️⬇️'''
+⬇️       ⬇️       ⬇️       ⬇️       ⬇️       ⬇️'''
         await call.message.answer(text = text
-                                  , reply_markup=CatalogKeyboards.list_items(showing_data, page=1))
+                                  , reply_markup=CatalogKeyboards.list_items(showing_data, page=1, data_len=data_len))
          
         await call.answer()
         return
@@ -62,34 +62,33 @@ async def update_item_markup(message: Message, new_amount : int, item_id : int):
 
 @router.callback_query(ItemsListCallbackFactory.filter())
 async def list_items(call : CallbackQuery, callback_data : ItemsListCallbackFactory):
+    
     match(callback_data.action):
         case 'show':
             item = await items.get_by_id(callback_data.item_id)
             await call.message.answer_photo(photo= item.image, caption=(item.message_info()),reply_markup= CatalogKeyboards.show_item(0, item.id))
         case '>' :
-            page = callback_data.page + 1
+            
+            page = callback_data.page
+            page = page + 1 if page*items.per_page < callback_data.data_len else 1
             rows = call.message.text.split('\n')
             category = rows[0][len('Категория : ') : ]
             manufacturer = rows[1][len('Производитель : ') : ]
             
-            showing_data = await items.get_by_cat_man(category, manufacturer, page=page)
-            if showing_data == []:
-                page = 1 
-                showing_data = await items.get_by_cat_man(category, manufacturer, page=page)
-            await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_items(showing_data, page=page))
-        case '<' :
-            if callback_data.page == 1:
-                await call.answer()
-                return
             
-            page = callback_data.page - 1
+            showing_data, data_len = await items.get_by_cat_man(category, manufacturer, page=page)
+            await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_items(showing_data, page=page, data_len=data_len))
+        case '<' :
+            
+            page = callback_data.page
+            page = page -1 if page>1 else math.ceil(callback_data.data_len/ items.per_page)
             rows = call.message.text.split('\n')
             category = rows[0][len('Категория : ') : ]
             manufacturer = rows[1][len('Производитель : ') : ]
 
-            showing_data = await items.get_by_cat_man(category, manufacturer, page=page)
+            showing_data, data_len = await items.get_by_cat_man(category, manufacturer, page=page)
             
-            await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_items(showing_data, page=page))
+            await call.message.edit_reply_markup(reply_markup=CatalogKeyboards.list_items(showing_data, page=page, data_len=data_len))
         case 'delete' : 
             await call.message.delete()
         case _ : 

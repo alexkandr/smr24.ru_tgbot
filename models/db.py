@@ -79,6 +79,7 @@ None if fetch == False, else list of results. List of tuples if factory is None
         await self.pool.close()
 
 class ItemsTable:
+    per_page = 7
     groups_dict = {
         0: "Ремонтные составы",
         1: "Смеси для пола",
@@ -116,16 +117,20 @@ class ItemsTable:
         return [r[0] for r in result]
     
     async def get_by_cat_man(self, category : str, manufacturer:str, page : int) -> list[ItemDAO]:
-        per_page = 7
-        offset = (page-1)*per_page
+        
+        offset = (page-1)*self.per_page
         if manufacturer == 'other':
             query = f"select * from items where group_name = '{category}' and manufacturer_name is null"
         else:
-            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' limit {per_page} offset {offset}"
+            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' limit {self.per_page} offset {offset}"
         
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
-        return result    
+        count_que = f"select count(*) from items where group_name = '{category}' and manufacturer_name='{manufacturer}'"
+        count = await db.execute(command=count_que,
+                                  fetch=True)        
+        count = int(count[0][0])
+        return result, count
 
     async def get_by_category(self, category : str) -> list[ItemDAO]:
         query = f"select * from items where group_name = '{category}'"
@@ -144,13 +149,17 @@ class ItemsTable:
     async def get_names(self) -> list[dict]:
         return
     
-    async def find(self, query : str) -> list[ItemDAO] | None:
+    async def find(self, search : str, page : int, data_len : int=0) -> list[ItemDAO] | None:
+        offset = (page -1)*self.per_page
         query = f"select * from items where to_tsvector(lower(name)) \
-        @@ plainto_tsquery(lower('{query}'))"
+        @@ plainto_tsquery(lower('{search}')) limit {self.per_page} offset {offset}"
         
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
-        return result
+        count_que  = f"select count(*) from items where to_tsvector(lower(name)) \
+        @@ plainto_tsquery(lower('{search}'))"
+        count = data_len if data_len > 0 else int((await db.execute(command=count_que, fetch=True))[0][0])
+        return result, count
 
 
 class AddressesTable:
