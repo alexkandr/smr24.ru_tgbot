@@ -84,6 +84,15 @@ async def will_to_change_address(call : CallbackQuery, callback_data : AddressCa
             await call.message.answer('''Выберите город:''', reply_markup=AddressKeyboards.list_cities(cities))
             #await call.message.edit_reply_markup(
             #    reply_markup=addresses_keyboard(await addresses.get_addresses_by_user_id(call.from_user.id)))
+        case 'takeaway':
+            ta_adresses = await addresses.get_takeaway_addresses()
+            await call.message.edit_caption(
+                caption='Выберите адрес для самовывоза', 
+                reply_markup=AddressKeyboards.list_addresses_for_purchase(ta_adresses, is_takeaway=True))
+        case 'delivery':
+            await call.message.edit_caption(
+                caption='Выберите адрес доставки', 
+                reply_markup=AddressKeyboards.list_addresses_for_purchase(await addresses.get_by_user_id(call.message.chat.id)))
     await call.answer()
 
 
@@ -106,14 +115,26 @@ async def add_street(message : Message, state : FSMContext):
 @router.message(AddressState.choose_house)
 async def add_house(message : Message, state : FSMContext):
     await state.update_data(house = message.text)
-    await message.reply('Принято, теперь укажите строение', reply_markup=MenuKeyboards.show_cancel_button())
+    await message.reply('Принято, теперь укажите строение', reply_markup=AddressKeyboards.show_cancel_button())
     await state.set_state(AddressState.choose_building)
+
+@router.message(AddressState.choose_building, F.text == 'Пропустить')
+async def add_empty_building(message : Message, state : FSMContext):
+    await state.update_data(building = '')
+    await message.reply('Принято, теперь укажите номер офиса или квартиры', reply_markup=AddressKeyboards.show_cancel_button())
+    await state.set_state(AddressState.choose_office)
 
 @router.message(AddressState.choose_building)
 async def add_building(message : Message, state : FSMContext):
     await state.update_data(building = message.text)
-    await message.reply('Принято, теперь укажите номер офиса или квартиры', reply_markup=MenuKeyboards.show_cancel_button())
+    await message.reply('Принято, теперь укажите номер офиса или квартиры', reply_markup=AddressKeyboards.show_cancel_button())
     await state.set_state(AddressState.choose_office)
+
+@router.message(AddressState.choose_office,F.text == 'Пропустить')
+async def add_empty_office(message : Message, state : FSMContext):
+    await state.update_data(office = '')
+    await message.reply('Принято, теперь укажите индекс', reply_markup=MenuKeyboards.show_cancel_button())
+    await state.set_state(AddressState.choose_index)
 
 @router.message(AddressState.choose_office)
 async def add_office(message : Message, state : FSMContext):

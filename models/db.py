@@ -57,8 +57,6 @@ None if fetch == False, else list of results. List of tuples if factory is None
         
 
         async with self.pool.connection() as conn:
-            self.logger.info(f'connection created \n Currently avaible {self.pool.get_stats()["pool_available"]} connections')
-
             async with conn.cursor(row_factory=factory) as cursor:
                 await cursor.execute(command)
                 result = None
@@ -111,29 +109,32 @@ class ItemsTable:
         return result    
     
     async def get_manufacturers_by_category(self, category : str) -> list[str]:
-        query = f"select distinct manufacturer_name from items where group_name = '{category}'"
+        query = f"select distinct manufacturer_name from items where group_name = '{category}' and visible = True"
         result = await db.execute(command=query,
                                   fetch=True)
         return [r[0] for r in result]
     
-    async def get_by_cat_man(self, category : str, manufacturer:str, page : int) -> list[ItemDAO]:
+    async def get_by_cat_man(self, category : str, manufacturer:str, page : int, avaible_only : bool = False) -> list[ItemDAO]:
         
         offset = (page-1)*self.per_page
         if manufacturer == 'other':
-            query = f"select * from items where group_name = '{category}' and manufacturer_name is null"
+            query = f"select * from items where group_name = '{category}' and manufacturer_name is null and visible = True"
         else:
-            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' limit {self.per_page} offset {offset}"
+            if avaible_only:
+                            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and visible = True and avaible > 0 limit {self.per_page} offset {offset}"
+            else:
+                query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and visible = True limit {self.per_page} offset {offset}"
         
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
-        count_que = f"select count(*) from items where group_name = '{category}' and manufacturer_name='{manufacturer}'"
+        count_que = f"select count(*) from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and visible = True"
         count = await db.execute(command=count_que,
                                   fetch=True)        
         count = int(count[0][0])
         return result, count
 
     async def get_by_category(self, category : str) -> list[ItemDAO]:
-        query = f"select * from items where group_name = '{category}'"
+        query = f"select * from items where group_name = '{category}' and visible = True"
         
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
@@ -152,12 +153,12 @@ class ItemsTable:
     async def find(self, search : str, page : int, data_len : int=0) -> list[ItemDAO] | None:
         offset = (page -1)*self.per_page
         query = f"select * from items where to_tsvector(lower(name)) \
-        @@ plainto_tsquery(lower('{search}')) limit {self.per_page} offset {offset}"
+        @@ plainto_tsquery(lower('{search}')) and visible = True limit {self.per_page} offset {offset}"
         
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
         count_que  = f"select count(*) from items where to_tsvector(lower(name)) \
-        @@ plainto_tsquery(lower('{search}'))"
+        @@ plainto_tsquery(lower('{search}')) and visible = True"
         count = data_len if data_len > 0 else int((await db.execute(command=count_que, fetch=True))[0][0])
         return result, count
 
@@ -166,21 +167,32 @@ class AddressesTable:
 
     async def get_by_user_id(self, user_id : int, visible_only :bool = True) -> list[class_row]:
         if visible_only:
-            query = f'select * from addresses where user_id = {user_id} and visible = True'
+            query = f'select id, user_id, index, country, city, street, house, building, office, visible from addresses where user_id = {user_id} and visible = True'
         else:
-            query = f'select * from addresses where user_id = {user_id}'
+            query = f'select id, user_id, index, country, city, street, house, building, office, visible from addresses where user_id = {user_id}'
         
         result = await db.execute(command=query, factory=class_row(AddressDAO),
                                   fetch=True)
         return result
 
     async def get_by_id(self, id : int) -> AddressDAO:
-        query = f'select * from addresses where id = {id}'
+        query = f'select id, user_id, index, country, city, street, house, building, office, visible from addresses where id = {id}'
         
         result = await db.execute(command=query, factory=class_row(AddressDAO),
                                   fetch=True)
         return result[0]
-
+    
+    async def get_takeaway_addresses(self) -> list[AddressDAO]:
+        query = f'select id, user_id, index, country, city, street, house, building, office, visible from addresses where is_takeaway = true and visible = true'
+        result = await db.execute(command=query, factory=class_row(AddressDAO),
+                                  fetch=True)
+        return result
+    async def check_is_takeaway(self, id) -> bool:
+        query = f'select is_takeaway from addresses where id = {id}'
+        result = await db.execute(command=query, 
+                                  fetch=True)
+        return result[0][0]
+    
     async def delete_by_user_id(self, user_id : int):
         query = f'update addresses set visible = false where user_id = {user_id}'
         
@@ -197,8 +209,8 @@ class AddressesTable:
         
         query = \
         f"insert into addresses (user_id, index, country, city, street, \
-        house, building, office, visible) values({user_id}, '{index}', '{country}', \
-        '{city}', '{street}', '{house}', '{building}', '{office}', '{visible}')" 
+        house, building, office, visible, is_takeaway) values({user_id}, '{index}', '{country}', \
+        '{city}', '{street}', '{house}', '{building}', '{office}', '{visible}', False)" 
         
         await db.execute(command=query, fetch=False)
             
@@ -210,8 +222,8 @@ class OrdersTable:
         values = list(order.values_as_tuple())
         
         query = "insert into orders (id, user_id, address_id, total_sum, \
-            payment_method, status, payment_status, creating_time) values \
-                ('{}', {}, {}, {}, '{}', '{}', '{}', '{}')".format(order.id, *values)
+            payment_method, status, payment_status, creating_time, is_takeaway) values \
+                ('{}', {}, {}, {}, '{}', '{}', '{}', '{}', {})".format(order.id, *values)
         
         await db.execute(query, fetch=False)
         return order.id

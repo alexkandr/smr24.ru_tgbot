@@ -27,18 +27,19 @@ async def accept(call : CallbackQuery, state : FSMContext):
             await call.message.answer(f'Ваш заказ сохранён под номером {order_id}.\n Ожидаем оплату')
         case _:
             await state.clear()
-            await call.message.answer(text='что теперб?')
+            #await call.message.answer(text='что теперб?')
     
     await call.answer()
 
 async def AcceptanceForm(call : CallbackQuery, state: FSMContext):
     data = await state.get_data()
     address = await addresses.get_by_id(data['chosen_address'])
+    is_takeaway = await addresses.check_is_takeaway(address.id)
     curr_cart = await carts.get_cart(call.from_user.id)
     purchases, sum = await cart_to_str(curr_cart)
     await call.message.answer(
         text=f'''Давай всё проверим:
-        Адрес: 
+        Адрес {'самовывоза'if is_takeaway else'доставки'}: 
             {address.to_string()}
         Товары:{purchases}
         Всего:
@@ -55,7 +56,7 @@ async def AcceptanceForm(call : CallbackQuery, state: FSMContext):
         reply_markup=PurchaseKeyboards.get_acceptance_form()
     )
     return OrderDAO(user_id=call.from_user.id, address_id=data['chosen_address'],
-                      total_sum=sum, payment_method='bank_transfer')
+                      total_sum=sum, payment_method='bank_transfer', is_takeaway=is_takeaway)
 
 async def cart_to_str(cart : list[CartItemDAO]):
     purchases = ''

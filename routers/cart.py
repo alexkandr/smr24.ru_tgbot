@@ -37,7 +37,7 @@ async def cart_action(call : CallbackQuery, callback_data : CartCallbackFactory,
             await call.message.answer_photo(
                 photo=await images.get_by_name('PhotoArtComplect'),
                 caption='Выберите адрес доставки', 
-                reply_markup=AddressKeyboards.list_addresses(await addresses.get_by_user_id(callback_data.user_id)))
+                reply_markup=AddressKeyboards.list_addresses_for_purchase(await addresses.get_by_user_id(callback_data.user_id)))
             await call.answer()
         case 'info':
             item = await items.get_by_id(callback_data.item_id)

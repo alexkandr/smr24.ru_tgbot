@@ -86,11 +86,12 @@ class OrderDAO:
     status : str
     payment_status :str
     creating_time : datetime
+    is_takeaway : bool
 
     def __init__(self, id : str = '', user_id : int = 0, address_id : int = 0, 
                  total_sum : Decimal = 0, payment_method : str = '', 
                  status : str = 'создан', payment_status = 'неоплачен', creating_time : datetime = 
-                 datetime.now()):
+                 datetime.now(), is_takeaway : bool = False):
         self.id = id
         self.user_id = user_id
         self.address_id = address_id
@@ -99,10 +100,11 @@ class OrderDAO:
         self.status = status
         self.payment_status = payment_status
         self.creating_time = creating_time
+        self.is_takeaway = is_takeaway
 
     def values_as_tuple(self) -> tuple[int, int, Decimal, str, str, str, datetime]:
         return (self.user_id, self.address_id, self.total_sum, 
-                self.payment_method, self.status, self.payment_status, self.creating_time)
+                self.payment_method, self.status, self.payment_status, self.creating_time, self.is_takeaway)
     
     def short_info(self) -> str:
         return f'''
@@ -120,7 +122,7 @@ class OrderDAO:
     Получатель: ООО "АртКомплект"
     Банк получателя: КРАСНОЯРСКОЕ ОТДЕЛЕНИЕ N 8646 ПАО СБЕРБАНК г.Красноярск
     БИК: 040407627
-    Номер счёта: 30101810800000000627
+    Номер счёта: 40702810231000007147
     ИНН: 2465256841
     КПП 246601001
 '''
@@ -134,7 +136,8 @@ class OrderDAO:
 Статус заказа: {self.status}
 Способ оплаты: Банковский перевод
 Статус оплаты: {self.payment_status}
-Адрес для доставки: {address}
+Способ доставки: {'Самовывоз' if self.is_takeaway else 'Доставка'}
+Адрес: {address}
 ''' + req + 'Состав заказа:'
     
 @dataclass
@@ -166,5 +169,8 @@ class AddressDAO:
         return (self.id, self.user_id, self.index, self.country, self.city, 
                 self.street, self.house, self.building, self.office)
     def to_string(self) ->str:
-        return ', '.join([self.index, self.country , self.city , self.street , 
-                          self.house , self.building , self.office])
+        res = ', '.join([self.index, self.city , self.street , 
+                          self.house])
+        res += '/' + self.building if self.building != '' else ''
+        res += ', кв. ' + self.office if self.office != '' else ''
+        return res

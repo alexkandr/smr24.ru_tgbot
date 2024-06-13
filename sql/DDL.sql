@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS images(
 
 CREATE TABLE IF NOT EXISTS addresses(    
     id SERIAL PRIMARY KEY,
-    user_id DOUBLE PRECISION NOT NULL,
+    user_id DOUBLE PRECISION,
     index VARCHAR(6), 
     country VARCHAR(255),
     city VARCHAR(255), 
@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS addresses(
     house VARCHAR(255),
     building VARCHAR(255),
     office VARCHAR(255),
-    visible BOOLEAN
+    visible BOOLEAN,
+    is_takeaway BOOLEAN
 );
 
 CREATE TABLE IF NOT EXISTS items(
@@ -57,9 +58,8 @@ CREATE TABLE IF NOT EXISTS orders (
     status VARCHAR(50),
     payment_status VARCHAR(50),
     creating_time TIMESTAMP,
-    is_takeaway integer
+    is_takeaway BOOLEAN
 );
-ALTER TABLE orders ADD CONSTRAINT is_takeaway check (is_takeaway >=0 and is_takeaway <=2);
 CREATE TABLE IF NOT EXISTS ordered_items(
     item_id VARCHAR(255) REFERENCES items(id),
     order_id Varchar(25) REFERENCES orders(id),

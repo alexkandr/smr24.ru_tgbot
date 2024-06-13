@@ -53,6 +53,49 @@ class AddressKeyboards:
         builder.adjust(1)
 
         return builder.as_markup(resize_keyboard=False)
+    
+    @staticmethod
+    def list_addresses_for_purchase(addresses : list[AddressDAO], 
+                       remove : bool = False, is_takeaway : bool = False) -> InlineKeyboardMarkup:
+
+        builder = InlineKeyboardBuilder()
+        if not is_takeaway:
+            builder.button(text='Самовывоз', callback_data=
+                           AddressCallbackFactory(action='takeaway', 
+                                                    address_index=None, 
+                                                    address_id=None))
+        
+        for i, address in enumerate(addresses):
+            builder.button(text= address.to_string(), callback_data=
+                           AddressCallbackFactory(action='address', 
+                                                    address_index=i, 
+                                                    address_id=address.id))   
+        
+        if remove == True:
+            builder.button(text='Отмена', callback_data=
+                           AddressCallbackFactory(action='cancel', 
+                                                    address_index=None, 
+                                                    address_id=None))
+            builder.adjust(1)
+            return builder.as_markup()
+        if not is_takeaway:
+            builder.button(text='Добавить адрес доставки', callback_data=
+                           AddressCallbackFactory(action='add', 
+                                                    address_index=None, 
+                                                    address_id=None))
+            if addresses != []:
+                builder.button(text='Удалить адреc доставки', callback_data=
+                               AddressCallbackFactory(action='remove',
+                                                        address_index=None, 
+                                                        address_id=None))
+        else: 
+             builder.button(text='Доставка', callback_data=
+                           AddressCallbackFactory(action='delivery', 
+                                                    address_index=None, 
+                                                    address_id=None))
+        builder.adjust(1)
+
+        return builder.as_markup(resize_keyboard=False)
 
     @staticmethod
     def list_payment_method() -> InlineKeyboardMarkup:
@@ -62,7 +105,14 @@ class AddressKeyboards:
         builder.button(text='Отмена', callback_data='cancel')
         builder.adjust(1)
         return builder.as_markup()
-
+    
+    @staticmethod
+    def show_cancel_button() -> ReplyKeyboardMarkup:
+        builder = ReplyKeyboardBuilder()
+        builder.button(text='Пропустить')
+        builder.button(text='отмена')
+        builder.adjust(1)
+        return builder.as_markup()
 
 
 class MenuKeyboards:
@@ -297,12 +347,12 @@ class OrdersKeyboards:
     
     @staticmethod 
     def show_item(amount : int,
-                  order_id : str) -> InlineKeyboardMarkup:
+                  order_id : str = None, item_id : str = None) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         builder.button(
             text=f"В заказ добавлено {amount} штук", 
-            callback_data=OrderCallbackFactory(action='sum', order_id=order_id,
-                                              amount=None, item_id=None)
+            callback_data=OrderCallbackFactory(action='sum', order_id=None,
+                                              amount=None, item_id=item_id)
         )
     
         builder.button(

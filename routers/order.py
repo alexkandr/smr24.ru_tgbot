@@ -3,7 +3,7 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
-from models.keyboards import OrdersKeyboards
+from models.keyboards import OrdersKeyboards, CatalogKeyboards
 
 from models.db import images, orders, items, ordered_items, addresses
 from models.callback_factory import OrderCallbackFactory
@@ -23,7 +23,7 @@ async def list_orders(message : Message, user_id = 0):
                                caption=caption)
     
 @router.message(Command(re.compile(r'b_\d{18,20}')))
-async def show_order(message : Message, command : CommandObject):
+async def show_order(message : Message, command : CommandObject, state : FSMContext):
     order_id = command.regexp_match.string
     orderitems = await ordered_items.get_by_order_id(order_id)
     if orderitems == []:
@@ -36,9 +36,10 @@ async def show_order(message : Message, command : CommandObject):
     address = await addresses.get_by_id(order.address_id)
     await message.answer(text=order.long_info(address.to_string()), reply_markup=await \
                          OrdersKeyboards.get_order(orderitems, order))
+    await state.update_data(order_id = order_id)
     
 @router.callback_query(OrderCallbackFactory.filter())
-async def chosen_address_to_delete(call : CallbackQuery, callback_data : OrderCallbackFactory):
+async def chosen_address_to_delete(call : CallbackQuery, callback_data : OrderCallbackFactory, state : FSMContext):
     data = callback_data
     match data.action:
         case 'cancel':
@@ -55,15 +56,18 @@ async def chosen_address_to_delete(call : CallbackQuery, callback_data : OrderCa
             #на тот же самый заказ
             item = await items.get_by_id(callback_data.item_id)
             await call.message.edit_text(text=item.message_info(),
-                                            reply_markup=OrdersKeyboards.show_item(amount=callback_data.amount, order_id=callback_data.order_id))
+                                            reply_markup=OrdersKeyboards.show_item(amount=callback_data.amount, order_id=callback_data.order_id, item_id=item.id))
             await  call.answer()
         case 'back':
-            order = (await orders.get_by_user_id(call.from_user.id))[0]
+            order_id = (await state.get_data())['order_id']
+            order = (await orders.get_by_id(order_id))
             address = await addresses.get_by_id(order.address_id)
             orderitems = await ordered_items.get_by_order_id(order.id)
             await call.message.edit_text(text=order.long_info(address.to_string()),
                                             reply_markup= await OrdersKeyboards.get_order(orderitems, order))
         case 'sum':
+            item = await items.get_by_id(callback_data.item_id)
+            await call.message.answer_photo(photo= item.image, caption=(item.message_info()),reply_markup= CatalogKeyboards.show_item(0, item.id))
             await call.answer()
 
 
