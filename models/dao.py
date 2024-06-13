@@ -49,6 +49,7 @@ class ItemDAO:
             f"<b><i>Описание:</i></b> \n {self.description}\n"
             f"<b><i>Производитель:</i></b> {self.manufacturer_name}\n"
             f"<b><i>Цена:</i></b> {self.price_str()}" 
+            f"<b><i>В наличии:</i></b> {self.avaible}"
             )
         
 @dataclass
