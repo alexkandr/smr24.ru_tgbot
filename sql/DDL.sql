@@ -39,8 +39,10 @@ CREATE TABLE IF NOT EXISTS items(
     price_per_unit NUMERIC,
     units VARCHAR(255),
     currency VARCHAR(3),
-    avaible INTEGER,
-    visible BOOLEAN
+    available INTEGER,
+    visible BOOLEAN,
+    has_annotation BOOLEAN,
+    annotation VARCHAR(255)
 );
 CREATE Table IF NOT EXISTS carts(
     user_id DOUBLE PRECISION,
@@ -66,3 +68,9 @@ CREATE TABLE IF NOT EXISTS ordered_items(
     amount INTEGER
 );
 ALTER TABLE ordered_items ADD CONSTRAINT OrderedItemsUnique UNIQUE(item_id, order_id);
+
+create or replace view main_order_view as select o.id as "id заказа", o.creating_time as "время создания", a.city || ' '|| a.street ||' '|| a.house || '/'||a.building as "адрес доставки", o.is_takeaway as "самовывоз",  i.id as "id товара", i.name as "название товара", oi.amount as "количество"
+from orders o join ordered_items oi on o.id = oi.order_id
+join items i on oi.item_id = i.id 
+join addresses a on o.address_id =  a.id
+order by o.creating_time desc;

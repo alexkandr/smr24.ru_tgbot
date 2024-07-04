@@ -218,7 +218,7 @@ class CatalogKeyboards:
         return InlineKeyboardMarkup(inline_keyboard=buttons)
     
     @staticmethod 
-    def show_item(amount : int, item_id : int) -> InlineKeyboardMarkup:
+    def show_item(amount : int, item_id : int, show_annotation: bool = True) -> InlineKeyboardMarkup:
         
         buttons = []
         
@@ -226,7 +226,8 @@ class CatalogKeyboards:
         InlineKeyboardButton(text="+1", callback_data=ItemCallbackFactory(action='incr', amount=amount, item_id=item_id).pack())])
         
         buttons.append([InlineKeyboardButton(text=f'{amount} штук в корзину', callback_data=ItemCallbackFactory(action='to_cart', amount=amount, item_id=item_id).pack())])
-        
+        if show_annotation:
+            buttons.append([InlineKeyboardButton(text='Показать инструкцию', callback_data= ItemCallbackFactory(action='show_annotation', amount=amount, item_id=item_id).pack())])
         buttons.append([InlineKeyboardButton(text='❌ Убрать', callback_data= ItemCallbackFactory(action='delete', amount=amount, item_id=item_id).pack())])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)

@@ -111,6 +111,12 @@ async def callback_catalog(call : CallbackQuery, callback_data : ItemCallbackFac
             await carts.add_to_cart(user_id=call.from_user.id, item_id=callback_data.item_id, amount= callback_data.amount)
             await call.answer(text=f'в корзину добавлено {callback_data.amount} штук', show_alert=True)
             return
+        case 'show_annotation':
+            item = await items.get_by_id(callback_data.item_id)
+            if item.has_annotation:
+                await call.message.answer_document(item.annotation)
+            else:
+                await call.answer(text=f'у данного товара нет инструкции', show_alert=True)
         case 'delete':
             await call.message.delete()
     await call.answer()

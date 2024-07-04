@@ -1,3 +1,5 @@
+from os import getenv
+from dotenv import load_dotenv
 from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.filters import Command
@@ -8,6 +10,8 @@ from models.db import images
 from models.seo_texts import start_command, contactus_command
 from models.fsm import GiveIdState
 
+load_dotenv()
+ADMIN_CHAT_ID = getenv('ADMIN_CHAT_ID')
 
 router = Router()
 
@@ -43,12 +47,12 @@ async def return_to_menu(message: Message):
 
 #save new image to db
 
-@router.message(Command(commands=['save_image']))
+@router.message(Command(commands=['save_image']), F.chat.id.in_([ADMIN_CHAT_ID]))
 async def save_image(message : Message, state : FSMContext):
     await state.set_state(GiveIdState.Recieve_image)
     await message.answer(text=f'Жду картинку, с подписью (названием файла)')
 
-@router.message(GiveIdState.Recieve_image, F.photo)
+@router.message(GiveIdState.Recieve_image, F.photo, F.chat.id.in_([ADMIN_CHAT_ID]))
 async def get_image_ig(message : Message, state : FSMContext):
     await images.add(file_id=message.photo[-1].file_id, file_name=message.caption)
     await state.clear()

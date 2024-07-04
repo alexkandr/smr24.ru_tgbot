@@ -3,12 +3,16 @@ import asyncio
 import logging
 import pathlib
 
+load_dotenv()
+TOKEN =  getenv('BOT_TOKEN')
+IS_DEBUG = getenv('IS_DEBUG')
+
 rel_path = pathlib.Path(__file__).parent.resolve()
 with open(rel_path.joinpath('./logs/number.log'), 'r+') as n:
     curr = int(n.read())
     n.seek(0, 0)
     n.write(str(curr+1))
-logging.basicConfig(level=logging.INFO, 
+logging.basicConfig(level=logging.INFO if IS_DEBUG else logging.DEBUG, 
                     filename=str(rel_path.joinpath(f"./logs/logs{curr}.log")),
                     filemode="w",
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s", force=True)
@@ -20,8 +24,6 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from routers import menu, catalog, cart, address, purchase, search, order
 
-load_dotenv()
-TOKEN =  getenv('BOT_TOKEN')
 
 
 

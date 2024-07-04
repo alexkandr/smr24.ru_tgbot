@@ -108,20 +108,23 @@ class ItemsTable:
                                   fetch=True)
         return result    
     
-    async def get_manufacturers_by_category(self, category : str) -> list[str]:
-        query = f"select distinct manufacturer_name from items where group_name = '{category}' and visible = True"
+    async def get_manufacturers_by_category(self, category : str, available_only : bool = True) -> list[str]:
+        if available_only:
+            query = f"select distinct manufacturer_name from items where group_name = '{category}' and visible = True and available > 0 "
+        else:
+            query = f"select distinct manufacturer_name from items where group_name = '{category}' and visible = True"
         result = await db.execute(command=query,
                                   fetch=True)
         return [r[0] for r in result]
     
-    async def get_by_cat_man(self, category : str, manufacturer:str, page : int, avaible_only : bool = False) -> list[ItemDAO]:
+    async def get_by_cat_man(self, category : str, manufacturer:str, page : int, available_only : bool = True) -> list[ItemDAO]:
         
         offset = (page-1)*self.per_page
         if manufacturer == 'other':
             query = f"select * from items where group_name = '{category}' and manufacturer_name is null and visible = True"
         else:
-            if avaible_only:
-                            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and visible = True and avaible > 0 limit {self.per_page} offset {offset}"
+            if available_only:
+                            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and visible = True and available > 0 limit {self.per_page} offset {offset}"
             else:
                 query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and visible = True limit {self.per_page} offset {offset}"
         

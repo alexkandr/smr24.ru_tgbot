@@ -16,12 +16,14 @@ class ItemDAO:
     units : str
     currency : str
     visible : bool = True
-    avaible : int = 0
+    available : int = 0
+    has_annotation : bool
+    annotation : str
     
     def __init__(self, id : str , group_name : str, name : str, 
                  description : str, manufacturer_name : str, image : str, 
                  price_per_unit : int, units : str, currency : str, 
-                 avaible : int, visible :bool = True) -> None:
+                 available : int, visible :bool = True, has_annotation : bool = False, annotation : str = '') -> None:
         self.id = id
         self.group_name = group_name
         self.name = name
@@ -31,14 +33,16 @@ class ItemDAO:
         self.price_per_unit = price_per_unit
         self.units = units
         self.currency = currency
-        self.avaible = avaible
+        self.available = available
         self.visible = visible
+        self.annotation = annotation
+        self.has_annotation = has_annotation
         
     def values_as_tuple(self) -> tuple[str, str, str, str, str, 
-                                        int, Decimal, str, str, int, bool]:
+                                        int, Decimal, str, str, int, bool, bool, str]:
         return (self.id, self.name, self.description, self.group_name, 
                 self.manufacturer_name, self.image, self.price_per_unit, 
-                self.units, self.currency, self.avaible, self.visible)
+                self.units, self.currency, self.available, self.visible, self.has_annotation, self.annotation)
     
     def price_str(self) -> str:
         return str(self.price_per_unit) + ' за ' + self.units
@@ -49,7 +53,7 @@ class ItemDAO:
             f"<b><i>Описание:</i></b> \n {self.description}\n"
             f"<b><i>Производитель:</i></b> {self.manufacturer_name}\n"
             f"<b><i>Цена:</i></b> {self.price_str()}\n" 
-            f"<b><i>В наличии:</i></b> {self.avaible}"
+            f"<b><i>В наличии:</i></b> {self.available}"
             )
         
 @dataclass
@@ -170,7 +174,7 @@ class AddressDAO:
         return (self.id, self.user_id, self.index, self.country, self.city, 
                 self.street, self.house, self.building, self.office)
     def to_string(self) ->str:
-        res = ', '.join([self.index, self.city , self.street , 
+        res = ', '.join([self.city , self.street , 
                           self.house])
         res += '/' + self.building if self.building != '' else ''
         res += ', кв. ' + self.office if self.office != '' else ''
