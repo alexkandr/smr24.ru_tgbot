@@ -124,13 +124,14 @@ class ItemsTable:
             query = f"select * from items where group_name = '{category}' and manufacturer_name is null and is_visible = True"
         else:
             if available_only:
-                            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and is_visible = True and available > 0 limit {self.per_page} offset {offset}"
+                query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and is_visible = True and available > 0 limit {self.per_page} offset {offset}"
+                count_que = f"select count(*) from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and is_visible = True and available > 0"
             else:
                 query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and is_visible = True limit {self.per_page} offset {offset}"
+                count_que = f"select count(*) from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and is_visible = True"
         
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
-        count_que = f"select count(*) from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and is_visible = True"
         count = await db.execute(command=count_que,
                                   fetch=True)        
         count = int(count[0][0])
