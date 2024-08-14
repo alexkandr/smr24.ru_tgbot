@@ -2,6 +2,7 @@ from os import getenv
 import asyncio
 import logging
 import pathlib
+from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN =  getenv('BOT_TOKEN')
@@ -17,7 +18,6 @@ logging.basicConfig(level=logging.INFO if IS_DEBUG else logging.DEBUG,
                     filemode="w",
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s", force=True)
 
-from dotenv import load_dotenv
 from aiogram import Dispatcher, Bot
 from aiogram.fsm.strategy import FSMStrategy
 from aiogram.fsm.storage.memory import MemoryStorage

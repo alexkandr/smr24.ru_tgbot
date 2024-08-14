@@ -1,4 +1,4 @@
-start_command = 'Притветствую тебя'
+start_command = 'Притветствуем Вас, укажите свой номер телефона'
 contactus_command = 'Свяжитесь с нами'
 contactus_text = 'Наш магазин в 2ГИС'
 contactus_url = 'https://2gis.ru/krasnoyarsk/branches/985699289403729/firm/985690700188995/92.864577%2C56.044073?m=92.892601%2C56.039979%2F12.4'

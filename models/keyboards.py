@@ -116,6 +116,11 @@ class AddressKeyboards:
 
 
 class MenuKeyboards:
+    @staticmethod
+    def get_phone_number() -> ReplyKeyboardMarkup:
+        builder = ReplyKeyboardBuilder()
+        builder.button(text='Предоставить номер телефона', request_contact = True)
+        return builder.as_markup()
 
     @staticmethod 
     def get_menu() -> ReplyKeyboardMarkup:

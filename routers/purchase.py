@@ -7,7 +7,7 @@ from decimal import Decimal
 from models.keyboards import PurchaseKeyboards
 from models.fsm import PurchaseState
 from models.dao import OrderDAO, CartItemDAO, OrderItemDAO
-from models.db import carts, orders, ordered_items, addresses, items
+from models.db import carts, orders, ordered_items, addresses, items, images
 
 
 router = Router()
@@ -37,8 +37,9 @@ async def AcceptanceForm(call : CallbackQuery, state: FSMContext):
     is_takeaway = await addresses.check_is_takeaway(address.id)
     curr_cart = await carts.get_cart(call.from_user.id)
     purchases, sum = await cart_to_str(curr_cart)
-    await call.message.answer(
-        text=f'''Давай всё проверим:
+    await call.message.answer_photo(
+        photo=await images.get_by_name('QRcode'),
+        caption=f'''Давай всё проверим:
         Адрес {'самовывоза'if is_takeaway else'доставки'}: 
             {address.to_string()}
         Товары:{purchases}

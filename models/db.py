@@ -110,9 +110,9 @@ class ItemsTable:
     
     async def get_manufacturers_by_category(self, category : str, available_only : bool = True) -> list[str]:
         if available_only:
-            query = f"select distinct manufacturer_name from items where group_name = '{category}' and visible = True and available > 0 "
+            query = f"select distinct manufacturer_name from items where group_name = '{category}' and is_visible = True and available > 0 "
         else:
-            query = f"select distinct manufacturer_name from items where group_name = '{category}' and visible = True"
+            query = f"select distinct manufacturer_name from items where group_name = '{category}' and is_visible = True"
         result = await db.execute(command=query,
                                   fetch=True)
         return [r[0] for r in result]
@@ -121,23 +121,23 @@ class ItemsTable:
         
         offset = (page-1)*self.per_page
         if manufacturer == 'other':
-            query = f"select * from items where group_name = '{category}' and manufacturer_name is null and visible = True"
+            query = f"select * from items where group_name = '{category}' and manufacturer_name is null and is_visible = True"
         else:
             if available_only:
-                            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and visible = True and available > 0 limit {self.per_page} offset {offset}"
+                            query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and is_visible = True and available > 0 limit {self.per_page} offset {offset}"
             else:
-                query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and visible = True limit {self.per_page} offset {offset}"
+                query = f"select * from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and is_visible = True limit {self.per_page} offset {offset}"
         
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
-        count_que = f"select count(*) from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and visible = True"
+        count_que = f"select count(*) from items where group_name = '{category}' and manufacturer_name='{manufacturer}' and is_visible = True"
         count = await db.execute(command=count_que,
                                   fetch=True)        
         count = int(count[0][0])
         return result, count
 
     async def get_by_category(self, category : str) -> list[ItemDAO]:
-        query = f"select * from items where group_name = '{category}' and visible = True"
+        query = f"select * from items where group_name = '{category}' and is_visible = True"
         
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
@@ -156,37 +156,37 @@ class ItemsTable:
     async def find(self, search : str, page : int, data_len : int=0) -> list[ItemDAO] | None:
         offset = (page -1)*self.per_page
         query = f"select * from items where to_tsvector(lower(name)) \
-        @@ plainto_tsquery(lower('{search}')) and visible = True limit {self.per_page} offset {offset}"
+        @@ plainto_tsquery(lower('{search}')) and is_visible = True limit {self.per_page} offset {offset}"
         
         result = await db.execute(command=query, factory=class_row(ItemDAO),
                                   fetch=True)
         count_que  = f"select count(*) from items where to_tsvector(lower(name)) \
-        @@ plainto_tsquery(lower('{search}')) and visible = True"
+        @@ plainto_tsquery(lower('{search}')) and is_visible = True"
         count = data_len if data_len > 0 else int((await db.execute(command=count_que, fetch=True))[0][0])
         return result, count
 
 
 class AddressesTable:
 
-    async def get_by_user_id(self, user_id : int, visible_only :bool = True) -> list[class_row]:
-        if visible_only:
-            query = f'select id, user_id, index, country, city, street, house, building, office, visible from addresses where user_id = {user_id} and visible = True'
+    async def get_by_user_id(self, user_id : int, is_visible_only :bool = True) -> list[class_row]:
+        if is_visible_only:
+            query = f'select id, user_id, index, country, city, street, house, building, office, is_visible from addresses where user_id = {user_id} and is_visible = True'
         else:
-            query = f'select id, user_id, index, country, city, street, house, building, office, visible from addresses where user_id = {user_id}'
+            query = f'select id, user_id, index, country, city, street, house, building, office, is_visible from addresses where user_id = {user_id}'
         
         result = await db.execute(command=query, factory=class_row(AddressDAO),
                                   fetch=True)
         return result
 
     async def get_by_id(self, id : int) -> AddressDAO:
-        query = f'select id, user_id, index, country, city, street, house, building, office, visible from addresses where id = {id}'
+        query = f'select id, user_id, index, country, city, street, house, building, office, is_visible from addresses where id = {id}'
         
         result = await db.execute(command=query, factory=class_row(AddressDAO),
                                   fetch=True)
         return result[0]
     
     async def get_takeaway_addresses(self) -> list[AddressDAO]:
-        query = f'select id, user_id, index, country, city, street, house, building, office, visible from addresses where is_takeaway = true and visible = true'
+        query = f'select id, user_id, index, country, city, street, house, building, office, is_visible from addresses where is_takeaway = true and is_visible = true'
         result = await db.execute(command=query, factory=class_row(AddressDAO),
                                   fetch=True)
         return result
@@ -197,23 +197,23 @@ class AddressesTable:
         return result[0][0]
     
     async def delete_by_user_id(self, user_id : int):
-        query = f'update addresses set visible = false where user_id = {user_id}'
+        query = f'update addresses set is_visible = false where user_id = {user_id}'
         
         await db.execute(command=query, fetch=True)
 
     async def delete_by_id(self, id : int):
-        query = f'update addresses set visible = false where id = {id}'
+        query = f'update addresses set is_visible = false where id = {id}'
         
         await db.execute(command=query, fetch=False)
 
     async def add(self,user_id :int = 0,index : str = '',country : str = '',
                   city : str = '',street : str = '',house : str = '',
-                  building : str = '',office : str = '', visible=True):
+                  building : str = '',office : str = '', is_visible=True):
         
         query = \
         f"insert into addresses (user_id, index, country, city, street, \
-        house, building, office, visible, is_takeaway) values({user_id}, '{index}', '{country}', \
-        '{city}', '{street}', '{house}', '{building}', '{office}', '{visible}', False)" 
+        house, building, office, is_visible, is_takeaway) values({user_id}, '{index}', '{country}', \
+        '{city}', '{street}', '{house}', '{building}', '{office}', '{is_visible}', False)" 
         
         await db.execute(command=query, fetch=False)
             
@@ -357,7 +357,14 @@ class CartsTable:
         query = "delete from carts where user_id = %s"%(user_id)
         
         await db.execute(query, fetch=False)
-        
+
+class UsersTable:
+
+    async def new_phone_number(self, phone_number : str, user_id : int):
+        query = f'''update users set is_current = False where user_id = {user_id};
+        insert into users (user_id, phone_number, is_current) values({user_id}, '{phone_number}', True);'''
+        await db.execute(query, fetch=False)
+
 
         
 db = DataBase(logger_name='MainPgDB')
@@ -371,6 +378,7 @@ ordered_items = OrderedItemsTable()
 images = ImagesTable()
 addresses = AddressesTable()
 carts = CartsTable()
+tusers = UsersTable()
 
 asyncio.run(connect())
 

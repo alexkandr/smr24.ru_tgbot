@@ -6,21 +6,38 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from models.keyboards import MenuKeyboards
-from models.db import images
+from models.db import images, tusers
 from models.seo_texts import start_command, contactus_command
-from models.fsm import GiveIdState
+from models.fsm import GiveIdState, GetNumber
 
 load_dotenv()
-ADMIN_CHAT_ID = getenv('ADMIN_CHAT_ID')
+ADMIN_CHAT_ID = int(getenv('ADMIN_CHAT_ID'))
 
 router = Router()
 
 @router.message(Command(commands=["start"]))
-async def start(message : Message):
+async def start(message : Message, state : FSMContext):
+    await state.set_state(GetNumber.Recieve_contact)
     m = await message.answer_photo(
         photo= await images.get_by_name('PhotoArtComplect'),
         caption=start_command, 
+        reply_markup=MenuKeyboards.get_phone_number())
+    
+@router.message(F.contact, GetNumber.Recieve_contact)
+async def welcome(message: Message, state : FSMContext):
+    phnumber = message.contact.phone_number
+    uid =  message.from_user.id
+    await tusers.new_phone_number(phnumber, uid)
+
+    await message.answer_photo(
+        photo= await images.get_by_name('PhotoArtComplect'),
+        caption='Добро пожаловать', 
         reply_markup=MenuKeyboards.get_menu())
+    await state.clear()
+    
+@router.message(GetNumber.Recieve_contact)
+async def not_welcome(message: Message):
+    await message.answer('Предоставьте, пожалуйста, номер телефона')
 
 @router.message(F.text == 'Связь')
 async def contact_us_menu(message: Message):
@@ -52,8 +69,9 @@ async def save_image(message : Message, state : FSMContext):
     await state.set_state(GiveIdState.Recieve_image)
     await message.answer(text=f'Жду картинку, с подписью (названием файла)')
 
+
 @router.message(GiveIdState.Recieve_image, F.photo, F.chat.id.in_([ADMIN_CHAT_ID]))
 async def get_image_ig(message : Message, state : FSMContext):
-    await images.add(file_id=message.photo[-1].file_id, file_name=message.caption)
+    await images.add(file_id=message.photo[0].file_id, file_name=message.caption)
     await state.clear()
     await message.answer(text=f'Сохранил')

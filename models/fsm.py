@@ -13,7 +13,9 @@ class PurchaseState(StatesGroup):
     ChooseAddress = State()
     Accept = State()
 
-
+class GetNumber(StatesGroup):
+    Recieve_contact = State()
+    
 class GiveIdState(StatesGroup):
     Recieve_image = State()
 

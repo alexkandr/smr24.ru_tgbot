@@ -15,15 +15,15 @@ class ItemDAO:
     price_per_unit : Decimal
     units : str
     currency : str
-    visible : bool = True
+    is_visible : bool = True
     available : int = 0
-    has_annotation : bool
-    annotation : str
+    has_annotation : bool = False
+    annotation : str = ''
     
     def __init__(self, id : str , group_name : str, name : str, 
                  description : str, manufacturer_name : str, image : str, 
                  price_per_unit : int, units : str, currency : str, 
-                 available : int, visible :bool = True, has_annotation : bool = False, annotation : str = '') -> None:
+                 available : int, is_visible :bool = True, has_annotation : bool = False, annotation : str = '') -> None:
         self.id = id
         self.group_name = group_name
         self.name = name
@@ -34,7 +34,7 @@ class ItemDAO:
         self.units = units
         self.currency = currency
         self.available = available
-        self.visible = visible
+        self.is_visible = is_visible
         self.annotation = annotation
         self.has_annotation = has_annotation
         
@@ -42,7 +42,7 @@ class ItemDAO:
                                         int, Decimal, str, str, int, bool, bool, str]:
         return (self.id, self.name, self.description, self.group_name, 
                 self.manufacturer_name, self.image, self.price_per_unit, 
-                self.units, self.currency, self.available, self.visible, self.has_annotation, self.annotation)
+                self.units, self.currency, self.available, self.is_visible, self.has_annotation, self.annotation)
     
     def price_str(self) -> str:
         return str(self.price_per_unit) + ' за ' + self.units
@@ -156,9 +156,9 @@ class AddressDAO:
     house : str
     building : str
     office : str
-    visible:bool
+    is_visible:bool
 
-    def __init__(self, id : int = 0,user_id :int = 0,index : str = '',country : str = '',city : str = '',street : str = '',house : str = '',building : str = '',office : str = '', visible=True):
+    def __init__(self, id : int = 0,user_id :int = 0,index : str = '',country : str = '',city : str = '',street : str = '',house : str = '',building : str = '',office : str = '', is_visible=True):
         self.id =  id 
         self.user_id=  user_id
         self.index =  index 
@@ -168,7 +168,7 @@ class AddressDAO:
         self.house =  house 
         self.building =  building 
         self.office =  office 
-        self.visible= visible
+        self.is_visible= is_visible
 
     def values_as_tuple(self) ->tuple[int,int,str,str,str,str,str,str,str]:
         return (self.id, self.user_id, self.index, self.country, self.city, 
@@ -179,3 +179,14 @@ class AddressDAO:
         res += '/' + self.building if self.building != '' else ''
         res += ', кв. ' + self.office if self.office != '' else ''
         return res
+
+@dataclass
+class UserDAO:
+    user_id : int
+    phone_number : str
+    is_current : bool = True
+
+    def __init__(self, user_id : int, phone_number : str, is_current : bool = True):
+        self.user_id = user_id        
+        self.phone_number = phone_number
+        self.is_current = is_current

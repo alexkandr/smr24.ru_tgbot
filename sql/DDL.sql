@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS addresses(
     house VARCHAR(255),
     building VARCHAR(255),
     office VARCHAR(255),
-    visible BOOLEAN,
+    is_visible BOOLEAN,
     is_takeaway BOOLEAN
 );
 
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS items(
     units VARCHAR(255),
     currency VARCHAR(3),
     available INTEGER,
-    visible BOOLEAN,
+    is_visible BOOLEAN,
     has_annotation BOOLEAN,
     annotation VARCHAR(255)
 );
@@ -69,8 +69,16 @@ CREATE TABLE IF NOT EXISTS ordered_items(
 );
 ALTER TABLE ordered_items ADD CONSTRAINT OrderedItemsUnique UNIQUE(item_id, order_id);
 
-create or replace view main_order_view as select o.id as "id заказа", o.creating_time as "время создания", a.city || ' '|| a.street ||' '|| a.house || '/'||a.building as "адрес доставки", o.is_takeaway as "самовывоз",  i.id as "id товара", i.name as "название товара", oi.amount as "количество"
-from orders o join ordered_items oi on o.id = oi.order_id
-join items i on oi.item_id = i.id 
-join addresses a on o.address_id =  a.id
+create table IF NOT exists users(
+user_id  DOUBLE precision,
+phone_number  VARCHAR(15),
+is_current  BOOLEAN
+);
+
+create or replace view main_order_view as select o.id as "id заказа", o.creating_time as "время создания", u.phone_number as "телефон заказчика", a.city || ' '|| a.street ||' '|| a.house || '/'||a.building as "адрес доставки", o.is_takeaway as "самовывоз",  i.id as "id товара", i.name as "название товара", oi.amount as "количество"
+from orders o left join ordered_items oi on o.id = oi.order_id
+left join items i on oi.item_id = i.id 
+left join addresses a on o.address_id =  a.id
+left join users u on o.user_id = u.user_id
 order by o.creating_time desc;
+
