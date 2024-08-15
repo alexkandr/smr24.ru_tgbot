@@ -241,7 +241,7 @@ class CatalogKeyboards:
     def delete_button() -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         builder.button(text='❌ Убрать', callback_data="delete_annotation")
-
+        return builder.as_markup()
 
 class CartKeyboards:
 
