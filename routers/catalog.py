@@ -114,10 +114,15 @@ async def callback_catalog(call : CallbackQuery, callback_data : ItemCallbackFac
         case 'show_annotation':
             item = await items.get_by_id(callback_data.item_id)
             if item.has_annotation:
-                await call.message.answer_document(item.annotation)
+                await call.message.answer_document(item.annotation, reply_markup=CatalogKeyboards.delete_button())
             else:
                 await call.answer(text=f'у данного товара нет инструкции', show_alert=True)
         case 'delete':
             await call.message.delete()
+    await call.answer()
+
+@router.callback_query(F.data == 'delete_annotation')
+async def delete_annotation(call : CallbackQuery):
+    await call.message.delete()
     await call.answer()
 

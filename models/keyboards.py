@@ -236,6 +236,11 @@ class CatalogKeyboards:
         buttons.append([InlineKeyboardButton(text='❌ Убрать', callback_data= ItemCallbackFactory(action='delete', amount=amount, item_id=item_id).pack())])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
+    
+    @staticmethod
+    def delete_button() -> InlineKeyboardMarkup:
+        builder = InlineKeyboardBuilder()
+        builder.button(text='❌ Убрать', callback_data="delete_annotation")
 
 
 class CartKeyboards:
