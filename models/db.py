@@ -108,7 +108,7 @@ class ItemsTable:
                                   fetch=True)
         return result    
     
-    async def get_manufacturers_by_category(self, category : str, available_only : bool = True) -> list[str]:
+    async def get_manufacturers_by_category(self, category : str, available_only : bool = False) -> list[str]:
         if available_only:
             query = f"select distinct manufacturer_name from items where group_name = '{category}' and is_visible = True and available > 0 "
         else:
@@ -117,7 +117,7 @@ class ItemsTable:
                                   fetch=True)
         return [r[0] for r in result]
     
-    async def get_by_cat_man(self, category : str, manufacturer:str, page : int, available_only : bool = True) -> list[ItemDAO]:
+    async def get_by_cat_man(self, category : str, manufacturer:str, page : int, available_only : bool = False) -> list[ItemDAO]:
         
         offset = (page-1)*self.per_page
         if manufacturer == 'other':
