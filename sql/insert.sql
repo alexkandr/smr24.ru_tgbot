@@ -1,4 +1,4 @@
-
+\c ArtKomplect;
 insert into items (id, name, description, group_id,  manufacturer_name, image, price_per_unit, units, currency, available, is_visible, has_annotation, annotation) values ('3328d2b7-2e83-48cd-8006-8363e8378e66', 'Зажим 3Д+ СВП Slim 1 мм (500шт)', 'None', 'f21ae94b-7591-11ef-bab5-5cb90197b332', '', 'AgACAgIAAxkBAAIB7Wa6G1gurWXFJcyXIsrpuCPXR8C0AAIB3zEbfFHQSVGoZFJapvY5AQADAgADcwADNQQ', 950, 'PCE', 'RUB', 24, True, False, '');
 insert into items (id, name, description, group_id,  manufacturer_name, image, price_per_unit, units, currency, available, is_visible, has_annotation, annotation) values ('7ff49ba4-35c0-4ae7-8078-6fd3890d0d6e', 'Затирка цементная высокопрочная ОСНОВИТ ПЛИТСЭЙВ XC35 H светло-серый 021 (20 кг)', 'Высокопрочная затирка ОСНОВИТ ПЛИТСЭЙВ XC35 Н предназначена для защиты и заполнения межплиточных швов шириной от 5 до 35 мм на вертикальных и горизонтальных основаниях.
 

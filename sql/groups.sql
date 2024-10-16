@@ -1,4 +1,4 @@
-
+\c ArtKomplect;
 insert into groups (id, name, parent, level) values ('ab228a02', 'Арт', null, 0);
 insert into groups (id, name, parent, level) values ('f5aba682', 'Концепция сайта', 'ab228a02', 1);
 insert into groups (id, name, parent, level) values ('7d1fca32', '10 Добавки в бетон', 'f5aba682', 2);
