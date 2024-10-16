@@ -8,7 +8,7 @@ from models.callback_factory import AddressCallbackFactory, \
       ItemCallbackFactory, CartCallbackFactory, CategoryCallbackFactory, OrderCallbackFactory,\
       ItemsListCallbackFactory, ItemsSearchCallbackFactory
 from models.db import items
-from models.dao import CartItemDAO, AddressDAO, OrderItemDAO, OrderDAO, ItemDAO
+from models.dao import CartItemDAO, AddressDAO, OrderItemDAO, OrderDAO, ItemDAO, GroupDao
 from models.seo_texts import contactus_url, contactus_text
 
 
@@ -151,54 +151,77 @@ class MenuKeyboards:
 
 class CatalogKeyboards:
 
+    
+    ##@staticmethod
+    ##def list_categories(category_ids: list[str], page : int, category_dict : dict) -> InlineKeyboardMarkup:
+    ##    
+    ##    buttons = []
+    ##    
+    ##    for cat in category_ids:
+    ##        buttons.append([InlineKeyboardButton(text=category_dict[cat], callback_data=CategoryCallbackFactory(c=str(cat), manufacturer='').pack())])
+    ##    buttons.append([
+    ##            InlineKeyboardButton(text="<", callback_data=CategoryCallbackFactory(c='-' + str(page), manufacturer = '').pack()),
+    ##            InlineKeyboardButton(text=str(page), callback_data=CategoryCallbackFactory(c='curr', manufacturer = '').pack()),
+    ##            InlineKeyboardButton(text=">", callback_data=CategoryCallbackFactory(c='+' + str(page), manufacturer = '').pack())
+    ##        ])
+    ##
+    ##
+    ##    return InlineKeyboardMarkup(inline_keyboard=buttons)
+    
+    
     @staticmethod
-    def list_categories(category_ids: list[str], page : int, category_dict : dict) -> InlineKeyboardMarkup:
+    def list_categories(categories: list[GroupDao], page : int, data_len : int) -> InlineKeyboardMarkup:
         
         buttons = []
-        
-        for cat in category_ids:
-            buttons.append([InlineKeyboardButton(text=category_dict[cat], callback_data=CategoryCallbackFactory(c=str(cat), manufacturer='').pack())])
-        buttons.append([
-                InlineKeyboardButton(text="<", callback_data=CategoryCallbackFactory(c='-' + str(page), manufacturer = '').pack()),
-                InlineKeyboardButton(text=str(page), callback_data=CategoryCallbackFactory(c='curr', manufacturer = '').pack()),
-                InlineKeyboardButton(text=">", callback_data=CategoryCallbackFactory(c='+' + str(page), manufacturer = '').pack())
+        parent = categories[0].parent
+        for cat in categories:
+            buttons.append([InlineKeyboardButton(text=cat.name, callback_data=CategoryCallbackFactory(c=cat.id, p = parent, manufacturer='', d = str(0)).pack())])
+        if data_len > 7:
+            buttons.append([
+                InlineKeyboardButton(text="<", callback_data=CategoryCallbackFactory(c='-' + str(page), p = parent, manufacturer = '', d = str(data_len)).pack()),
+                InlineKeyboardButton(text=str(page), callback_data=CategoryCallbackFactory(c='curr', p = parent, manufacturer = '', d = str(data_len)).pack()),
+                InlineKeyboardButton(text=">", callback_data=CategoryCallbackFactory(c='+' + str(page),p = parent, manufacturer = '', d = str(data_len)).pack())
             ])
+        if categories[0].level > 2:
+            buttons.append([InlineKeyboardButton(text='Назад', callback_data=CategoryCallbackFactory(c='prev', p = parent, manufacturer = '', d = str(0)).pack()),])
 
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
     
     @staticmethod
-    def list_manufacturers(manufacturers: list[str], category : str) -> InlineKeyboardMarkup:
+    def list_manufacturers(manufacturers: list[str], category : GroupDao, data_len : int) -> InlineKeyboardMarkup:
         
         buttons = []
         
         for man in manufacturers:
-            buttons.append([InlineKeyboardButton(text=man, callback_data=CategoryCallbackFactory(c=category, manufacturer=man).pack()) ])
+            buttons.append([InlineKeyboardButton(text=man, callback_data=CategoryCallbackFactory(c=category.id, p = category.parent, manufacturer=man, d = str(data_len)).pack()) ])
+        if manufacturers == []:
+            buttons.append([InlineKeyboardButton(text='Товары отсутствуют', callback_data=CategoryCallbackFactory(c='None', p = category.parent, manufacturer='', d = str(data_len)).pack()) ])
         buttons.append([
-                #InlineKeyboardButton(text="Другое", callback_data=CategoryCallbackFactory(c=category, manufacturer='other').pack()),
-                InlineKeyboardButton(text="Назад", callback_data=CategoryCallbackFactory(c='back', manufacturer = '').pack())
+                InlineKeyboardButton(text="Назад", callback_data=CategoryCallbackFactory(c='back', p = category.parent, manufacturer = '', d = str(0)).pack())
             ])
 
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
     
     @staticmethod
-    def list_items(ilist : list[ItemDAO], page : int, data_len : int) -> InlineKeyboardMarkup: 
+    def list_items(ilist : list[ItemDAO], page : int, data_len : int, category :str ) -> InlineKeyboardMarkup: 
         per_page = 7
         buttons = []
         for i in ilist:
-            buttons.append([InlineKeyboardButton(text=i.name, callback_data= ItemsListCallbackFactory(action='show', item_id= i.id, page=page, data_len=data_len).pack())])
-
+            buttons.append([InlineKeyboardButton(text=i.name, callback_data= ItemsListCallbackFactory(action='show', item_id= i.id, page=page, data_len = data_len, c=category).pack())])
+        if ilist == []:
+            buttons.append([InlineKeyboardButton(text='Товары отсутствуют', callback_data= ItemsListCallbackFactory(action='none', item_id= '', page=page, data_len = data_len, c=category).pack())])
         if data_len > per_page:
             total_pages = math.ceil(data_len/ per_page)
             buttons.append(
             [
-                InlineKeyboardButton(text="<", callback_data=ItemsListCallbackFactory(action='<', page=page, item_id='',data_len=data_len).pack()),
-                InlineKeyboardButton(text=f'{page}/{total_pages}', callback_data=ItemsListCallbackFactory(action='curr', page=page, item_id='',data_len=data_len).pack()),
-                InlineKeyboardButton(text=">", callback_data=ItemsListCallbackFactory(action='>', page=page, item_id='',data_len=data_len).pack())
+                InlineKeyboardButton(text="<", callback_data=ItemsListCallbackFactory(action='<', page=page, item_id='',data_len = data_len, c=category).pack()),
+                InlineKeyboardButton(text=f'{page}/{total_pages}', callback_data=ItemsListCallbackFactory(action='curr', page=page, item_id='',data_len = data_len, c=category).pack()),
+                InlineKeyboardButton(text=">", callback_data=ItemsListCallbackFactory(action='>', page=page, item_id='',data_len = data_len, c=category).pack())
             ]
             )
-        buttons.append([InlineKeyboardButton(text='❌ Убрать', callback_data= ItemsListCallbackFactory(action='delete', item_id='', page=page,data_len=data_len).pack())])
+        buttons.append([InlineKeyboardButton(text='❌ Убрать', callback_data= ItemsListCallbackFactory(action='delete', item_id='', page=page,data_len = data_len, c=category).pack())])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
     

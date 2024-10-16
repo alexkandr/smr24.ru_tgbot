@@ -7,7 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class ItemDAO:
     id: str
-    group_name : str
+    group_id : str
     name: str  
     description: str  
     manufacturer_name : str
@@ -20,12 +20,12 @@ class ItemDAO:
     has_annotation : bool = False
     annotation : str = ''
     
-    def __init__(self, id : str , group_name : str, name : str, 
+    def __init__(self, id : str , group_id : str, name : str, 
                  description : str, manufacturer_name : str, image : str, 
                  price_per_unit : int, units : str, currency : str, 
                  available : int, is_visible :bool = True, has_annotation : bool = False, annotation : str = '') -> None:
         self.id = id
-        self.group_name = group_name
+        self.group_id = group_id
         self.name = name
         self.description = description
         self.manufacturer_name = manufacturer_name
@@ -40,7 +40,7 @@ class ItemDAO:
         
     def values_as_tuple(self) -> tuple[str, str, str, str, str, 
                                         int, Decimal, str, str, int, bool, bool, str]:
-        return (self.id, self.name, self.description, self.group_name, 
+        return (self.id, self.name, self.description, self.group_id, 
                 self.manufacturer_name, self.image, self.price_per_unit, 
                 self.units, self.currency, self.available, self.is_visible, self.has_annotation, self.annotation)
     
@@ -49,7 +49,7 @@ class ItemDAO:
 
     def message_info(self) -> str:
         return (f"{self.name}\n"
-            f"<b><i>Категория:</i></b> \n {self.group_name}\n" 
+            f"<b><i>Категория:</i></b> \n {self.group_id}\n" 
             f"<b><i>Описание:</i></b> \n {self.description}\n"
             f"<b><i>Производитель:</i></b> {self.manufacturer_name}\n"
             f"<b><i>Цена:</i></b> {self.price_str()}\n" 
@@ -190,3 +190,16 @@ class UserDAO:
         self.user_id = user_id        
         self.phone_number = phone_number
         self.is_current = is_current
+
+@dataclass
+class GroupDao:
+    id : str
+    name : str
+    parent : str
+    level : int
+
+    def __init__(self, id : str, name : str, parent : str, level : int):
+        self.id = id
+        self.name = name
+        self.parent = parent
+        self.level = level

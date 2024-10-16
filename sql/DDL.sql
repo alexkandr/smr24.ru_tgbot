@@ -29,9 +29,16 @@ CREATE TABLE IF NOT EXISTS addresses(
     is_takeaway BOOLEAN
 );
 
+CREATE Table IF NOT EXISTS groups(
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255),
+    parent VARCHAR REFERENCES groups(id),
+    level INTEGER
+);
+
 CREATE TABLE IF NOT EXISTS items(
     id VARCHAR(255) PRIMARY KEY,
-    group_name VARCHAR(255),
+    group_id VARCHAR(255) REFERENCES groups(id),
     name VARCHAR(500),
     description VARCHAR(1000),
     manufacturer_name VARCHAR(255) ,

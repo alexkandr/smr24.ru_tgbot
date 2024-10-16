@@ -22,13 +22,16 @@ class ItemCallbackFactory(CallbackData, prefix="item"):
 
 class CategoryCallbackFactory(CallbackData, prefix="c"):
     c : str
+    p : Optional[str]
     manufacturer: Optional[str]
+    d : int
 
 class ItemsListCallbackFactory(CallbackData, prefix="ilist"):
     action : str
     item_id : Optional[str]
     page : Optional[int]
     data_len : int
+    c : str
 
 class ItemsSearchCallbackFactory(CallbackData, prefix="slist"):
     action : str
