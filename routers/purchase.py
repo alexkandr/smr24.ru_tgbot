@@ -1,28 +1,28 @@
-from aiogram import Router
-from aiogram.methods import SendMessage
-from aiogram.types import  CallbackQuery
-from aiogram.fsm.context import FSMContext
 from decimal import Decimal
 
-from models.keyboards import PurchaseKeyboards
+from aiogram import Router
+from aiogram.types import  CallbackQuery
+from aiogram.fsm.context import FSMContext
+
+from routers.utils import PurchaseKeyboards
 from models.fsm import PurchaseState
-from models.dao import OrderDAO, CartItemDAO, OrderItemDAO
-from models.db import carts, orders, ordered_items, addresses, items, images
+from models.dao import OrderDAO, CartItemDAO
+from models.db_context import DBContext
+
+class PurchaseRouter():
+    router = Router()
 
 
-router = Router()
-
-
-@router.callback_query(PurchaseState.Accept)
-async def accept(call : CallbackQuery, state : FSMContext):
+@PurchaseRouter.router.callback_query(PurchaseState.Accept)
+async def accept(call : CallbackQuery, state : FSMContext, db_context : DBContext):
     match call.data:
         case 'Accept':
             order = (await state.get_data())['order']
-            order_id = await orders.add(order)
-            cart = await carts.get_cart(call.from_user.id)
+            order_id = await db_context.orders.add(order)
+            cart = await db_context.carts.get_cart(call.from_user.id)
             for item in cart:
-                await ordered_items.add_item(item_id=item.item_id, order_id=order_id, amount=item.amount)
-            await carts.clear_cart(call.from_user.id)
+                await db_context.ordered_items.add_item(item_id=item.item_id, order_id=order_id, amount=item.amount)
+            await db_context.carts.clear_cart(call.from_user.id)
             await state.clear()
             await call.message.answer(f'Ваш заказ сохранён под номером {order_id}.\n Ожидаем оплату')
         case _:
@@ -31,14 +31,14 @@ async def accept(call : CallbackQuery, state : FSMContext):
     
     await call.answer()
 
-async def AcceptanceForm(call : CallbackQuery, state: FSMContext):
+async def AcceptanceForm(call : CallbackQuery, state: FSMContext, db_context : DBContext):
     data = await state.get_data()
-    address = await addresses.get_by_id(data['chosen_address'])
-    is_takeaway = await addresses.check_is_takeaway(address.id)
-    curr_cart = await carts.get_cart(call.from_user.id)
-    purchases, sum = await cart_to_str(curr_cart)
+    address = await db_context.addresses.get_by_id(data['chosen_address'])
+    is_takeaway = await db_context.addresses.check_is_takeaway(address.id)
+    curr_cart = await db_context.carts.get_cart(call.from_user.id)
+    purchases, sum = await cart_to_str(curr_cart, db_context)
     await call.message.answer_photo(
-        photo=await images.get_by_name('QRcode'),
+        photo=await db_context.images.get_by_name('QRcode'),
         caption=f'''Давай всё проверим:
         Адрес {'самовывоза'if is_takeaway else'доставки'}: 
             {address.to_string()}
@@ -59,11 +59,11 @@ async def AcceptanceForm(call : CallbackQuery, state: FSMContext):
     return OrderDAO(user_id=call.from_user.id, address_id=data['chosen_address'],
                       total_sum=sum, payment_method='bank_transfer', is_takeaway=is_takeaway)
 
-async def cart_to_str(cart : list[CartItemDAO]):
+async def cart_to_str(cart : list[CartItemDAO], db_context : DBContext):
     purchases = ''
     sum = Decimal(0)
     for line in cart:
-        item = await items.get_by_id(line.item_id)
+        item = await db_context.items.get_by_id(line.item_id)
         purchases += f"\n{' '*12}{item.name} : \n {' '*20}{line.amount} штук по {item.price_per_unit}руб"
         sum += item.price_per_unit*int(line.amount)
     return (purchases, sum)

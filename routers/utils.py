@@ -7,14 +7,14 @@ import math
 from models.callback_factory import AddressCallbackFactory, \
       ItemCallbackFactory, CartCallbackFactory, CategoryCallbackFactory, OrderCallbackFactory,\
       ItemsListCallbackFactory, ItemsSearchCallbackFactory
-from models.db import items
+
 from models.dao import CartItemDAO, AddressDAO, OrderItemDAO, OrderDAO, ItemDAO, GroupDao
 from models.seo_texts import contactus_url, contactus_text
-
+from models.db_context import DBContext
 
 class AddressKeyboards:
 
-    @staticmethod
+    
     def list_cities(cities : list[str]) -> ReplyKeyboardMarkup:
         builder = ReplyKeyboardBuilder()
         for o in cities:
@@ -23,7 +23,7 @@ class AddressKeyboards:
         builder.button(text='отмена')
         return builder.as_markup(resize_keyboard=True)
 
-    @staticmethod
+    
     def list_addresses(addresses : list[AddressDAO], 
                        remove : bool = False) -> InlineKeyboardMarkup:
 
@@ -54,7 +54,7 @@ class AddressKeyboards:
 
         return builder.as_markup(resize_keyboard=False)
     
-    @staticmethod
+    
     def list_addresses_for_purchase(addresses : list[AddressDAO], 
                        remove : bool = False, is_takeaway : bool = False) -> InlineKeyboardMarkup:
 
@@ -97,7 +97,7 @@ class AddressKeyboards:
 
         return builder.as_markup(resize_keyboard=False)
 
-    @staticmethod
+    
     def list_payment_method() -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         builder.button(text='Наличными при получении', callback_data='cash')
@@ -106,7 +106,7 @@ class AddressKeyboards:
         builder.adjust(1)
         return builder.as_markup()
     
-    @staticmethod
+    
     def show_cancel_button() -> ReplyKeyboardMarkup:
         builder = ReplyKeyboardBuilder()
         builder.button(text='Пропустить')
@@ -116,13 +116,13 @@ class AddressKeyboards:
 
 
 class MenuKeyboards:
-    @staticmethod
+    
     def get_phone_number() -> ReplyKeyboardMarkup:
         builder = ReplyKeyboardBuilder()
         builder.button(text='Предоставить номер телефона', request_contact = True)
         return builder.as_markup()
 
-    @staticmethod 
+     
     def get_menu() -> ReplyKeyboardMarkup:
         
         builder = ReplyKeyboardBuilder()    
@@ -132,7 +132,7 @@ class MenuKeyboards:
 
         return builder.as_markup(resize_keyboard=True)
 
-    @staticmethod 
+     
     def get_contacts() -> InlineKeyboardMarkup:
 
         builder = InlineKeyboardBuilder()
@@ -142,7 +142,7 @@ class MenuKeyboards:
 
         return builder.as_markup(resize_keyboard=True)
 
-    @staticmethod
+    
     def show_cancel_button() -> ReplyKeyboardMarkup:
         builder = ReplyKeyboardBuilder()
         builder.button(text='отмена')
@@ -152,7 +152,7 @@ class MenuKeyboards:
 class CatalogKeyboards:
 
     
-    ##@staticmethod
+    ##
     ##def list_categories(category_ids: list[str], page : int, category_dict : dict) -> InlineKeyboardMarkup:
     ##    
     ##    buttons = []
@@ -169,7 +169,7 @@ class CatalogKeyboards:
     ##    return InlineKeyboardMarkup(inline_keyboard=buttons)
     
     
-    @staticmethod
+    
     def list_categories(categories: list[GroupDao], page : int, data_len : int) -> InlineKeyboardMarkup:
         
         buttons = []
@@ -188,7 +188,7 @@ class CatalogKeyboards:
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
     
-    @staticmethod
+    
     def list_manufacturers(manufacturers: list[str], category : GroupDao, data_len : int) -> InlineKeyboardMarkup:
         
         buttons = []
@@ -204,7 +204,7 @@ class CatalogKeyboards:
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
     
-    @staticmethod
+    
     def list_items(ilist : list[ItemDAO], page : int, data_len : int, category :str ) -> InlineKeyboardMarkup: 
         per_page = 7
         buttons = []
@@ -225,7 +225,7 @@ class CatalogKeyboards:
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
     
-    @staticmethod
+    
     def list_search_items(ilist : list[ItemDAO], page : int, data_len : int) -> InlineKeyboardMarkup: 
         per_page = 7
         buttons = []
@@ -245,7 +245,7 @@ class CatalogKeyboards:
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
     
-    @staticmethod 
+     
     def show_item(amount : int, item_id : int, show_annotation: bool = True) -> InlineKeyboardMarkup:
         
         buttons = []
@@ -260,7 +260,7 @@ class CatalogKeyboards:
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
     
-    @staticmethod
+    
     def delete_button() -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         builder.button(text='❌ Убрать', callback_data="delete_annotation")
@@ -268,16 +268,16 @@ class CatalogKeyboards:
 
 class CartKeyboards:
 
-    @staticmethod 
+     
     async def get_cart(cart : list[CartItemDAO], 
-                       user_id : int) -> InlineKeyboardMarkup:
+                       user_id : int, db_context : DBContext) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         if cart is None:
             return builder.as_markup()
 
         sum = decimal.Decimal(0)
         for line in cart:
-            item = await items.get_by_id(line.item_id)
+            item = await db_context.items.get_by_id(line.item_id)
             t_price = item.price_per_unit * line.amount
             builder.button(
                 text=f'{item.name[:10]}... \n {line.amount}шт * {item.price_per_unit}₽/шт = {t_price}₽', 
@@ -303,7 +303,7 @@ class CartKeyboards:
         return builder.as_markup()
 
 
-    @staticmethod 
+     
     def show_item(amount : int, item_id : str, 
                   user_id : int) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
@@ -338,14 +338,14 @@ class CartKeyboards:
         return builder.as_markup(resize_keyboard=True)
 
 class OrdersKeyboards:
-    @staticmethod 
+     
     async def get_order(order_items : list[OrderItemDAO], order : OrderDAO,
-                       ) -> InlineKeyboardMarkup:
+                    db_context : DBContext) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
 
         sum = decimal.Decimal(0)
         for line in order_items:
-            item = await items.get_by_id(line.item_id)
+            item = await db_context.items.get_by_id(line.item_id)
             t_price = item.price_per_unit * line.amount
             builder.button(
                 text=f'{item.name[:10]}... \n {line.amount}шт * {item.price_per_unit}₽/шт = {t_price}₽', 
@@ -379,7 +379,7 @@ class OrdersKeyboards:
 
         return builder.as_markup()
     
-    @staticmethod 
+     
     def show_item(amount : int,
                   order_id : str = None, item_id : str = None) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
@@ -400,10 +400,10 @@ class OrdersKeyboards:
 
 class PurchaseKeyboards:
 
-    @staticmethod 
+     
     def get_acceptance_form() -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         builder.button(text='Подтверждаю заказ', callback_data='Accept')
-        builder.button(text='Изменить заказ', callback_data='change')
+        #builder.button(text='Изменить заказ', callback_data='change')
         builder.adjust(1)
         return builder.as_markup()
