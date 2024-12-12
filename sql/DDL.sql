@@ -82,7 +82,7 @@ phone_number  VARCHAR(15),
 is_current  BOOLEAN
 );
 
-create or replace view main_order_view as select o.id as "id заказа", o.creating_time as "время создания", u.phone_number as "телефон заказчика", a.city || ' '|| a.street ||' '|| a.house || '/'||a.building as "адрес доставки", o.is_takeaway as "самовывоз",  i.id as "id товара", i.name as "название товара", oi.amount as "количество"
+create or replace view main_order_view as select distinct o.id as "id заказа", o.creating_time as "время создания", u.phone_number as "телефон заказчика", a.city || ' '|| a.street ||' '|| a.house || '/'||a.building as "адрес доставки", o.is_takeaway as "самовывоз",  i.id as "id товара", i.name as "название товара", oi.amount as "количество"
 from orders o left join ordered_items oi on o.id = oi.order_id
 left join items i on oi.item_id = i.id 
 left join addresses a on o.address_id =  a.id

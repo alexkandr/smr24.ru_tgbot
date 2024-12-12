@@ -1,5 +1,6 @@
+\c ArtKomplect;
 
-insert into groups (id, name, parent, level) values ('ab228a02', 'Арт', '', 0);
+insert into groups (id, name, parent, level) values ('ab228a02', 'Арт', null, 0);
 insert into groups (id, name, parent, level) values ('f5aba682', 'Концепция сайта', 'ab228a02', 1);
 insert into groups (id, name, parent, level) values ('9da822a8', 'Краски интерьерные ', 'f5aba682', 2);
 insert into groups (id, name, parent, level) values ('a9fffded', 'RSA', 'f5aba682', 2);
@@ -55,7 +56,6 @@ insert into groups (id, name, parent, level) values ('5867abc1', 'ЛКМ', '5867
 insert into groups (id, name, parent, level) values ('9f508db4', 'Грунт-эмаль ', '5867abc1P', 3);
 insert into groups (id, name, parent, level) values ('04a51d2a', 'Лак', '5867abc1P', 3);
 insert into groups (id, name, parent, level) values ('e3a5f6f7', 'Эмаль', '5867abc1P', 3);
-insert into groups (id, name, parent, level) values ('1ab81a92', 'Грунт', '5867abc1P', 3);
 insert into groups (id, name, parent, level) values ('e39deddeP', 'Клея для плитки', 'f5aba682', 2);
 insert into groups (id, name, parent, level) values ('e39dedde', 'Клея для плитки', 'e39deddeP', 3);
 insert into groups (id, name, parent, level) values ('8d9f1fbf', 'Модификатор плиточного клея', 'e39deddeP', 3);
@@ -75,7 +75,6 @@ insert into groups (id, name, parent, level) values ('c2178344', 'Штукату
 insert into groups (id, name, parent, level) values ('f3d232dd', 'Система выравнивания на основе гипсовой штукатурки', 'c2178344P', 3);
 insert into groups (id, name, parent, level) values ('11d468cf', 'Система выравнивания на основе цементно-известковой штукатурки', 'c2178344P', 3);
 insert into groups (id, name, parent, level) values ('217097af', 'Система выравнивания на основе цеметной штукатурки', 'c2178344P', 3);
-insert into groups (id, name, parent, level) values ('26e2ace7', 'Система выравнивания на основе санрующей штукатурки', 'c2178344P', 3);
 insert into groups (id, name, parent, level) values ('dd8b4231P', 'Шпаклевка ', 'f5aba682', 2);
 insert into groups (id, name, parent, level) values ('dd8b4231', 'Шпаклевка ', 'dd8b4231P', 3);
 insert into groups (id, name, parent, level) values ('aa8b9c6b', 'Гипсовые шпаклевки ', 'dd8b4231P', 3);
@@ -86,8 +85,8 @@ insert into groups (id, name, parent, level) values ('e1a143f3', 'Грунт', '
 insert into groups (id, name, parent, level) values ('67603368', 'Акриловые ', 'e1a143f3P', 3);
 insert into groups (id, name, parent, level) values ('39d29689P', 'Инъекционные системы', 'f5aba682', 2);
 insert into groups (id, name, parent, level) values ('39d29689', 'Инъекционные системы', '39d29689P', 3);
+insert into groups (id, name, parent, level) values ('f6b1b2a8', 'Пакера', '39d29689P', 3);
 insert into groups (id, name, parent, level) values ('53c03240', 'Цементные инъекционные составы', '39d29689P', 3);
-insert into groups (id, name, parent, level) values ('69c4c8d2', 'Полиуретоновые инъекционные составы', '39d29689P', 3);
 insert into groups (id, name, parent, level) values ('76e810c7', 'Эпоксидные инъекцонные составы', '39d29689P', 3);
 insert into groups (id, name, parent, level) values ('40a1e2ca', 'Известковые иньекционные составы', '39d29689P', 3);
 insert into groups (id, name, parent, level) values ('3078a79eP', 'Топпинг', 'f5aba682', 2);
@@ -97,17 +96,15 @@ insert into groups (id, name, parent, level) values ('47b3594e', 'Корундо
 insert into groups (id, name, parent, level) values ('06a7652dP', 'Фасад', 'f5aba682', 2);
 insert into groups (id, name, parent, level) values ('06a7652d', 'Фасад', '06a7652dP', 3);
 insert into groups (id, name, parent, level) values ('151705eb', 'Мокрый фасад', '06a7652dP', 3);
-insert into groups (id, name, parent, level) values ('87d861c2P', 'Декоративные штукатурки ', '06a7652dP', 3);
-insert into groups (id, name, parent, level) values ('87d861c2', 'Декоративные штукатурки ', '87d861c2P', 4);
-insert into groups (id, name, parent, level) values ('16b1fc26', 'Силикатные', '87d861c2P', 4);
 insert into groups (id, name, parent, level) values ('731a87e5P', 'Кладочные растворы ', '06a7652dP', 3);
 insert into groups (id, name, parent, level) values ('731a87e5', 'Кладочные растворы ', '731a87e5P', 4);
-insert into groups (id, name, parent, level) values ('881182edP', 'Растворы для рядовой кладки и расшивки кирпичных швов', '731a87e5P', 4);
-insert into groups (id, name, parent, level) values ('881182ed', 'Растворы для рядовой кладки и расшивки кирпичных швов', '881182edP', 5);
-insert into groups (id, name, parent, level) values ('619bd62d', 'Зимнии кладочные расстворы ', '881182edP', 5);
+insert into groups (id, name, parent, level) values ('881182ed', 'Растворы для рядовой кладки и расшивки кирпичных швов', '731a87e5P', 4);
 insert into groups (id, name, parent, level) values ('04c59e2dP', 'Фасадные краски', '06a7652dP', 3);
 insert into groups (id, name, parent, level) values ('04c59e2d', 'Фасадные краски', '04c59e2dP', 4);
 insert into groups (id, name, parent, level) values ('48d4bb61', 'Акриловые ', '04c59e2dP', 4);
+insert into groups (id, name, parent, level) values ('87d861c2P', 'Декоративные штукатурки ', '06a7652dP', 3);
+insert into groups (id, name, parent, level) values ('87d861c2', 'Декоративные штукатурки ', '87d861c2P', 4);
+insert into groups (id, name, parent, level) values ('16b1fc26', 'Силикатные', '87d861c2P', 4);
 insert into groups (id, name, parent, level) values ('79335178P', 'Реактивные клея', 'f5aba682', 2);
 insert into groups (id, name, parent, level) values ('79335178', 'Реактивные клея', '79335178P', 3);
 insert into groups (id, name, parent, level) values ('8b084ef0', 'Клей для керамики и резиновых лент', '79335178P', 3);
@@ -123,7 +120,6 @@ insert into groups (id, name, parent, level) values ('3084fbe5P', 'Гермет�
 insert into groups (id, name, parent, level) values ('3084fbe5', 'Герметик ', '3084fbe5P', 3);
 insert into groups (id, name, parent, level) values ('d223ec55', 'Акриловые герметики', '3084fbe5P', 3);
 insert into groups (id, name, parent, level) values ('d86c6d70', 'Двух компонентные герметики', '3084fbe5P', 3);
-insert into groups (id, name, parent, level) values ('e2b723fd', 'Кислотный силиконовый герметик', '3084fbe5P', 3);
 insert into groups (id, name, parent, level) values ('3703a997', 'Полиуретановый герметик PU', '3084fbe5P', 3);
 insert into groups (id, name, parent, level) values ('655ca448', 'Гибридные герметики MS', '3084fbe5P', 3);
 insert into groups (id, name, parent, level) values ('71ae3e90', 'Нейтрально силиконовый герметик', '3084fbe5P', 3);
